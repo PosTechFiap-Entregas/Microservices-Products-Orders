@@ -6,9 +6,8 @@ using Orders.Application.Services.Service;
 using Orders.Domain.Entities;
 using Orders.Domain.Enums;
 using Orders.Domain.Interfaces.Repository;
-using Xunit;
 
-namespace Orders.Tests.Application;
+namespace Orders.Tests.Application.Services.Service;
 
 public class PaymentServiceTests
 {

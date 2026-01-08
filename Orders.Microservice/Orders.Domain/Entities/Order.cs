@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Orders.Domain.Entities
 {
@@ -23,7 +21,6 @@ namespace Orders.Domain.Entities
         // Navigation
         public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
 
-        // Método auxiliar para calcular (ainda útil para validações)
         public decimal CalculateTotal()
         {
             return Items.Sum(item => item.Quantity * item.UnitPrice);
@@ -45,13 +42,11 @@ namespace Orders.Domain.Entities
 
             Items.Add(item);
 
-            // 🎯 Recalcula o total ao adicionar item
             RecalculateTotal();
 
             UpdatedAt = DateTime.UtcNow;
         }
 
-        // 🎯 NOVO MÉTODO: Recalcular e atualizar o total armazenado
         public void RecalculateTotal()
         {
             TotalAmount = CalculateTotal();
@@ -66,7 +61,6 @@ namespace Orders.Domain.Entities
             UpdatedAt = DateTime.UtcNow;
         }
 
-        // 🆕 NOVO: Processar pagamento
         public void ProcessPayment(string paymentId, PaymentStatusEnum paymentStatus)
         {
             if (string.IsNullOrWhiteSpace(paymentId))
@@ -75,7 +69,6 @@ namespace Orders.Domain.Entities
             PaymentId = paymentId;
             PaymentStatus = paymentStatus;
 
-            // Se pagamento foi aprovado, avança o status do pedido
             if (paymentStatus == PaymentStatusEnum.PAID && Status == OrderStatusEnum.RECEIVED)
             {
                 Status = OrderStatusEnum.IN_PREPARATION;
@@ -84,13 +77,11 @@ namespace Orders.Domain.Entities
             UpdatedAt = DateTime.UtcNow;
         }
 
-        // 🆕 NOVO: Cancelar por falta de pagamento
         public void CancelDueToPaymentFailure()
         {
             if (PaymentStatus == PaymentStatusEnum.REFUSED ||
                 PaymentStatus == PaymentStatusEnum.CANCELLED)
             {
-                // Você pode criar um status CANCELLED no OrderStatusEnum se quiser
                 UpdatedAt = DateTime.UtcNow;
             }
         }

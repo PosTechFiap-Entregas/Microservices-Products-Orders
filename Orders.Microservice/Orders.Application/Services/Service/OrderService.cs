@@ -63,7 +63,6 @@ namespace Orders.Application.Services.Service
                 PaymentStatus = PaymentStatusEnum.PENDING,
             };
 
-            // Adicionar itens consultando produtos
             foreach (var itemDto in dto.Items)
             {
                 var product = await _productsClient.GetProductByIdAsync(itemDto.ProductId);
@@ -85,8 +84,6 @@ namespace Orders.Application.Services.Service
                 order.AddItem(item);
             }
 
-            // 🎯 O total já foi calculado automaticamente pelo AddItem()!
-            // Mas podemos garantir com:
             order.RecalculateTotal();
 
             var created = await _repository.AddAsync(order);
@@ -128,7 +125,7 @@ namespace Orders.Application.Services.Service
             order.Number,
             order.PaymentId,
             order.PaymentStatus,
-            order.TotalAmount,  // 🎯 USA O VALOR ARMAZENADO, não calcula!
+            order.TotalAmount,
             order.CreatedAt,
             order.UpdatedAt,
             order.Items.Select(i => new OrderItemDto(

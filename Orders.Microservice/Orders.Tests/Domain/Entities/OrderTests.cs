@@ -3,7 +3,7 @@ using Orders.Domain.Entities;
 using Orders.Domain.Enums;
 using Xunit;
 
-namespace Orders.Tests.Domain;
+namespace Orders.Tests.Domain.Entities;
 
 public class OrderTests
 {
