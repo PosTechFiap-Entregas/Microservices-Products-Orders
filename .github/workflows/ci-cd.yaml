@@ -52,6 +52,9 @@ jobs:
           SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
           SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
         run: |
+          # Print do token para depuração (cuidado com exposição!)
+          Write-Host "SONAR_TOKEN: $env:SONAR_TOKEN"
+      
           ${{ runner.temp }}\scanner\dotnet-sonarscanner begin `
             /k:"$env:SONAR_PROJECT_KEY" `
             /o:"$env:SONAR_ORGANIZATION" `
@@ -68,3 +71,4 @@ jobs:
       
           ${{ runner.temp }}\scanner\dotnet-sonarscanner end `
             /d:sonar.token="$env:SONAR_TOKEN"
+
