@@ -2,13 +2,10 @@
 using FluentAssertions;
 using Moq;
 using Products.Application.DTOs;
-using Products.Application.Services;
 using Products.Application.Services.Service;
 using Products.Domain.Entities;
 using Products.Domain.Enums;
-using Products.Domain.Interfaces;
 using Products.Domain.Interfaces.Repository;
-using Xunit;
 
 namespace Products.Tests.Application.Services.Service;
 
@@ -162,7 +159,7 @@ public class ProductServiceTests
             .ReturnsAsync(existingProduct);
 
         _repositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Product>()))
-            .ReturnsAsync(existingProduct);
+            .ReturnsAsync((Product p) => p);
 
         var result = await _service.UpdateAsync(1, updateDto);
 
@@ -213,5 +210,122 @@ public class ProductServiceTests
 
         result.Should().BeFalse();
         _repositoryMock.Verify(r => r.DeleteAsync(999), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WithNegativePrice_ThrowsArgumentException()
+    {
+        var existingProduct = _fixture.Build<Product>()
+            .With(p => p.Id, 2)
+            .With(p => p.Name, "X-Test")
+            .With(p => p.Price, 10.00m)
+            .Create();
+
+        var updateDto = new UpdateProductDto(
+            Name: "X-Test",
+            Price: -5.00m,
+            Category: CategoryEnum.SANDWICH,
+            Description: "Desc",
+            Active: true,
+            ImageUrl: null
+        );
+
+        _repositoryMock.Setup(r => r.GetByIdAsync(2))
+            .ReturnsAsync(existingProduct);
+
+        Func<Task> act = async () => await _service.UpdateAsync(2, updateDto);
+
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithMessage("O preço não pode ser negativo");
+
+        _repositoryMock.Verify(r => r.GetByIdAsync(2), Times.Once);
+        _repositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Product>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WithInvalidName_ThrowsArgumentException()
+    {
+        var existingProduct = _fixture.Build<Product>()
+            .With(p => p.Id, 3)
+            .With(p => p.Name, "Original")
+            .With(p => p.Price, 20.00m)
+            .Create();
+
+        var updateDto = new UpdateProductDto(
+            Name: "", // invalid
+            Price: 20.00m,
+            Category: CategoryEnum.SANDWICH,
+            Description: "Desc",
+            Active: true,
+            ImageUrl: null
+        );
+
+        _repositoryMock.Setup(r => r.GetByIdAsync(3))
+            .ReturnsAsync(existingProduct);
+
+        Func<Task> act = async () => await _service.UpdateAsync(3, updateDto);
+
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithMessage("O nome do produto é obrigatório");
+
+        _repositoryMock.Verify(r => r.GetByIdAsync(3), Times.Once);
+        _repositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Product>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CreateAsync_WhenRepositoryThrows_PropagatesException()
+    {
+        var createDto = new CreateProductDto("Fail", 1.00m, CategoryEnum.DRINK, null, null);
+
+        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Product>()))
+            .ThrowsAsync(new Exception("DB failure"));
+
+        Func<Task> act = async () => await _service.CreateAsync(createDto);
+
+        await act.Should().ThrowAsync<Exception>()
+            .WithMessage("*DB failure*");
+
+        _repositoryMock.Verify(r => r.AddAsync(It.IsAny<Product>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetAllAsync_MapsCreatedAtAndUpdatedAt()
+    {
+        var now = DateTime.UtcNow;
+        var p1 = new Product { Id = 10, Name = "A", Price = 1m, Category = CategoryEnum.SANDWICH, Active = true, CreatedAt = now.AddDays(-1), UpdatedAt = now };
+        var p2 = new Product { Id = 11, Name = "B", Price = 2m, Category = CategoryEnum.SIDE, Active = true, CreatedAt = now.AddDays(-2), UpdatedAt = now.AddHours(-1) };
+
+        _repositoryMock.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Product> { p1, p2 });
+
+        var result = (await _service.GetAllAsync()).ToList();
+
+        result.Should().HaveCount(2);
+        result[0].CreatedAt.Should().Be(p1.CreatedAt);
+        result[0].UpdatedAt.Should().Be(p1.UpdatedAt);
+        result[1].CreatedAt.Should().Be(p2.CreatedAt);
+        result[1].UpdatedAt.Should().Be(p2.UpdatedAt);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_AppliesAllFields_ReturnsUpdatedDto()
+    {
+        var existingProduct = new Product { Id = 4, Name = "Old", Price = 5m, Category = CategoryEnum.SANDWICH, Active = true, Description = "Old", ImageUrl = "old.jpg" };
+        var updateDto = new UpdateProductDto("NewName", 15.00m, CategoryEnum.DRINK, "NewDesc", false, "new.jpg");
+
+        _repositoryMock.Setup(r => r.GetByIdAsync(4)).ReturnsAsync(existingProduct);
+        _repositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Product>())).ReturnsAsync((Product p) => p);
+
+        var result = await _service.UpdateAsync(4, updateDto);
+
+        result.Should().NotBeNull();
+        result.Name.Should().Be("NewName");
+        result.Price.Should().Be(15.00m);
+        result.Category.Should().Be(CategoryEnum.DRINK);
+        result.Description.Should().Be("NewDesc");
+        result.Active.Should().BeFalse();
+        result.ImageUrl.Should().Be("new.jpg");
+
+        _repositoryMock.Verify(r => r.GetByIdAsync(4), Times.Once);
+        _repositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Product>()), Times.Once);
     }
 }

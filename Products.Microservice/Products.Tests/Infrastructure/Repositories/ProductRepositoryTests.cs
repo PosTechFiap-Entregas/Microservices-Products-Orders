@@ -4,7 +4,6 @@ using Products.Domain.Entities;
 using Products.Domain.Enums;
 using Products.Infrastructure.Data;
 using Products.Infrastructure.Repositories;
-using Xunit;
 
 namespace Products.Tests.Infrastructure.Repositories;
 
@@ -170,6 +169,69 @@ public class ProductRepositoryTests : IDisposable
         var result = await _repository.ExistsAsync(999);
 
         result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetAllAsync_ShouldOrderByCategoryThenName()
+    {
+        await _context.Products.AddRangeAsync(new[]
+        {
+            new Product { Name = "B-Item", Price = 1m, Category = CategoryEnum.DRINK, Active = true },
+            new Product { Name = "A-Item", Price = 2m, Category = CategoryEnum.SANDWICH, Active = true },
+            new Product { Name = "C-Item", Price = 3m, Category = CategoryEnum.DRINK, Active = true },
+            new Product { Name = "Z-Item", Price = 4m, Category = CategoryEnum.SIDE, Active = true },
+            new Product { Name = "AA-Item", Price = 5m, Category = CategoryEnum.SANDWICH, Active = true },
+        });
+        await _context.SaveChangesAsync();
+
+        var result = (await _repository.GetAllAsync()).ToList();
+
+        var expected = result.OrderBy(p => p.Category).ThenBy(p => p.Name).Select(p => (p.Category, p.Name)).ToList();
+        result.Select(p => (p.Category, p.Name)).Should().BeEquivalentTo(expected, options => options.WithStrictOrdering());
+    }
+
+    [Fact]
+    public async Task GetByCategoryAsync_ShouldReturnOrderedByName()
+    {
+        var category = CategoryEnum.SANDWICH;
+        await _context.Products.AddRangeAsync(new[]
+        {
+            new Product { Name = "Zeta", Price = 1m, Category = category, Active = true },
+            new Product { Name = "Alpha", Price = 2m, Category = category, Active = true },
+            new Product { Name = "Beta", Price = 3m, Category = category, Active = true }
+        });
+        await _context.SaveChangesAsync();
+
+        var result = (await _repository.GetByCategoryAsync(category)).ToList();
+
+        var names = result.Select(p => p.Name).ToList();
+        names.Should().ContainInOrder("Alpha", "Beta", "Zeta");
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ShouldSetUpdatedAtToNewerValue()
+    {
+        var product = new Product
+        {
+            Name = "TimestampTest",
+            Price = 10m,
+            Category = CategoryEnum.SANDWICH,
+            Active = true,
+            CreatedAt = DateTime.UtcNow.AddDays(-2),
+            UpdatedAt = DateTime.UtcNow.AddDays(-2)
+        };
+        await _context.Products.AddAsync(product);
+        await _context.SaveChangesAsync();
+
+        var originalUpdatedAt = product.UpdatedAt;
+
+        product.Price = 20m;
+        await _repository.UpdateAsync(product);
+
+        var fromDb = await _context.Products.FindAsync(product.Id);
+
+        fromDb.Should().NotBeNull();
+        fromDb!.UpdatedAt.Should().BeAfter(originalUpdatedAt);
     }
 
     public void Dispose()
