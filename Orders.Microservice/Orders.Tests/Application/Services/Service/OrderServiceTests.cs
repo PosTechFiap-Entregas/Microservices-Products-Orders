@@ -441,6 +441,105 @@ namespace Orders.Tests.Application.Services.Service
             _paymentClientMock.Verify(p => p.CreatePaymentAsync(It.IsAny<string>(), It.IsAny<decimal>()), Times.Once);
         }
 
+        [Fact]
+        public async Task CreateAsync_WhenPaymentIsNull_DoesNotCallUpdateAsync_AndReturnsOrderWithoutPaymentId()
+        {
+            var product = new ProductResponse(1, "Produto", 10.00m, "Categoria", null, true, null);
+
+            var createDto = new CreateOrderDto(
+                CustomerId: 1,
+                Observation: "Obs",
+                Items: new List<CreateOrderItemDto> { new(1, 2) }
+            );
+
+            var createdOrder = new Order
+            {
+                Id = 1,
+                Number = 100,
+                Items = new List<OrderItem> { new OrderItem { ProductId = 1, ProductName = "Produto", Quantity = 2, UnitPrice = 10.00m } }
+            };
+            createdOrder.RecalculateTotal();
+
+            _repositoryMock.Setup(r => r.GetNextOrderNumberAsync()).ReturnsAsync(100);
+            _productsClientMock.Setup(p => p.GetProductByIdAsync(1)).ReturnsAsync(product);
+            _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Order>())).ReturnsAsync(createdOrder);
+            _paymentClientMock.Setup(p => p.CreatePaymentAsync(It.IsAny<string>(), It.IsAny<decimal>())).ReturnsAsync((PaymentResponse?)null);
+
+            var result = await _service.CreateAsync(createDto);
+
+            result.Should().NotBeNull();
+            result.PaymentId.Should().BeNull();
+            _repositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Order>()), Times.Never);
+            _paymentClientMock.Verify(p => p.CreatePaymentAsync(It.IsAny<string>(), It.IsAny<decimal>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateAsync_WhenRepositoryReturnsOrderWithIdZero_CallsPaymentWithZeroString()
+        {
+            var product = new ProductResponse(1, "Produto", 5.00m, "Categoria", null, true, null);
+            var paymentResponse = new PaymentResponse("pay_abc", "0", 10.00m, "PENDING", "qrcode", DateTime.UtcNow);
+
+            var createDto = new CreateOrderDto(
+                CustomerId: 1,
+                Observation: null,
+                Items: new List<CreateOrderItemDto> { new(1, 2) }
+            );
+
+            var createdOrder = new Order
+            {
+                Id = 0,
+                Number = 101,
+                Items = new List<OrderItem> { new OrderItem { ProductId = 1, ProductName = "Produto", Quantity = 2, UnitPrice = 5.00m } }
+            };
+            createdOrder.RecalculateTotal();
+
+            _repositoryMock.Setup(r => r.GetNextOrderNumberAsync()).ReturnsAsync(101);
+            _productsClientMock.Setup(p => p.GetProductByIdAsync(1)).ReturnsAsync(product);
+            _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Order>())).ReturnsAsync(createdOrder);
+            _paymentClientMock.Setup(p => p.CreatePaymentAsync("0", createdOrder.TotalAmount)).ReturnsAsync(paymentResponse);
+            _repositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Order>())).ReturnsAsync((Order o) => o);
+
+            var result = await _service.CreateAsync(createDto);
+
+            result.Should().NotBeNull();
+            _paymentClientMock.Verify(p => p.CreatePaymentAsync("0", createdOrder.TotalAmount), Times.Once);
+            _repositoryMock.Verify(r => r.UpdateAsync(It.Is<Order>(o => o.PaymentId == "pay_abc")), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateAsync_WhenPaymentThrowsException_DoesNotCallUpdateAsync_ButCreatesOrder()
+        {
+            var product = new ProductResponse(1, "Produto", 7.50m, "Categoria", null, true, null);
+
+            var createDto = new CreateOrderDto(
+                CustomerId: 1,
+                Observation: "Obs",
+                Items: new List<CreateOrderItemDto> { new(1, 1) }
+            );
+
+            var createdOrder = new Order
+            {
+                Id = 1,
+                Number = 102,
+                Items = new List<OrderItem> { new OrderItem { ProductId = 1, ProductName = "Produto", Quantity = 1, UnitPrice = 7.50m } }
+            };
+            createdOrder.RecalculateTotal();
+
+            _repositoryMock.Setup(r => r.GetNextOrderNumberAsync()).ReturnsAsync(102);
+            _productsClientMock.Setup(p => p.GetProductByIdAsync(1)).ReturnsAsync(product);
+            _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Order>())).ReturnsAsync(createdOrder);
+            _paymentClientMock.Setup(p => p.CreatePaymentAsync(It.IsAny<string>(), It.IsAny<decimal>()))
+                .ThrowsAsync(new Exception("Payment API down"));
+
+            var result = await _service.CreateAsync(createDto);
+
+            result.Should().NotBeNull();
+            result.Number.Should().Be(102);
+            _repositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Order>()), Times.Never);
+            _paymentClientMock.Verify(p => p.CreatePaymentAsync(It.IsAny<string>(), It.IsAny<decimal>()), Times.Once);
+            _repositoryMock.Verify(r => r.AddAsync(It.IsAny<Order>()), Times.Once);
+        }
+
         #endregion
 
         #region UpdateStatusAsync Tests
