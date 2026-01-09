@@ -37,6 +37,14 @@ builder.Services.AddHttpClient<IProductsHttpClient, ProductsHttpClient>(client =
     client.Timeout = TimeSpan.FromSeconds(30);
 });
 
+// HttpClient para comunicação com Payment API
+var paymentApiUrl = builder.Configuration["PaymentApi:BaseUrl"] ?? "http://localhost:8083";
+builder.Services.AddHttpClient<IPaymentHttpClient, PaymentHttpClient>(client =>
+{
+    client.BaseAddress = new Uri(paymentApiUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+
 // Dependency Injection
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderService, OrderService>();
@@ -70,10 +78,7 @@ builder.Services.AddHealthChecks()
 
 var app = builder.Build();
 
-// ============================================================
-// ?? CONFIGURAÇÃO DE BANCO DE DADOS (1 LINHA!)
-// ============================================================
-app.ApplyMigrations();  // ?? Aplica migrations
+app.ApplyMigrations();
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())

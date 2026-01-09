@@ -13,13 +13,18 @@ namespace Orders.Tests.Application.Services.Service
     {
         private readonly Mock<IOrderRepository> _repositoryMock;
         private readonly Mock<IProductsHttpClient> _productsClientMock;
+        private readonly Mock<IPaymentHttpClient> _paymentClientMock;
         private readonly OrderService _service;
 
         public OrderServiceTests()
         {
             _repositoryMock = new Mock<IOrderRepository>();
             _productsClientMock = new Mock<IProductsHttpClient>();
-            _service = new OrderService(_repositoryMock.Object, _productsClientMock.Object);
+            _paymentClientMock = new Mock<IPaymentHttpClient>();
+            _service = new OrderService(
+                _repositoryMock.Object,
+                _productsClientMock.Object,
+                _paymentClientMock.Object);
         }
 
         #region GetByIdAsync Tests
@@ -126,7 +131,6 @@ namespace Orders.Tests.Application.Services.Service
             _repositoryMock.Setup(r => r.GetActiveOrdersAsync())
                 .ReturnsAsync(new List<Order>());
 
-            // Act
             var result = await _service.GetActiveOrdersAsync();
 
             result.Should().NotBeNull();
@@ -172,6 +176,8 @@ namespace Orders.Tests.Application.Services.Service
         public async Task CreateAsync_WithValidData_CreatesOrderSuccessfully()
         {
             var product = new ProductResponse(1, "Produto Teste", 25.50m, "Categoria", "Descrição", true, null);
+            var paymentResponse = new PaymentResponse("pay_123", "1", 51.00m, "PENDING", "qrcode_data", DateTime.UtcNow);
+
             var createDto = new CreateOrderDto(
                 CustomerId: 1,
                 Observation: "Pedido teste",
@@ -181,6 +187,9 @@ namespace Orders.Tests.Application.Services.Service
                 }
             );
 
+            var createdOrder = CreateSampleOrder();
+            createdOrder.Id = 1;
+
             _repositoryMock.Setup(r => r.GetNextOrderNumberAsync())
                 .ReturnsAsync(100);
 
@@ -188,6 +197,12 @@ namespace Orders.Tests.Application.Services.Service
                 .ReturnsAsync(product);
 
             _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Order>()))
+                .ReturnsAsync(createdOrder);
+
+            _paymentClientMock.Setup(p => p.CreatePaymentAsync(It.IsAny<string>(), It.IsAny<decimal>()))
+                .ReturnsAsync(paymentResponse);
+
+            _repositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Order>()))
                 .ReturnsAsync((Order o) => o);
 
             var result = await _service.CreateAsync(createDto);
@@ -205,13 +220,16 @@ namespace Orders.Tests.Application.Services.Service
             _repositoryMock.Verify(r => r.GetNextOrderNumberAsync(), Times.Once);
             _productsClientMock.Verify(p => p.GetProductByIdAsync(1), Times.Once);
             _repositoryMock.Verify(r => r.AddAsync(It.IsAny<Order>()), Times.Once);
+            _paymentClientMock.Verify(p => p.CreatePaymentAsync(It.IsAny<string>(), It.IsAny<decimal>()), Times.Once);
+            _repositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Order>()), Times.Once);
         }
 
         [Fact]
         public async Task CreateAsync_WithMultipleItems_CalculatesTotalCorrectly()
         {
-             var product1 = new ProductResponse(1, "Produto 1", 10.00m, "Categoria", null, true, null);
+            var product1 = new ProductResponse(1, "Produto 1", 10.00m, "Categoria", null, true, null);
             var product2 = new ProductResponse(2, "Produto 2", 20.00m, "Categoria", null, true, null);
+            var paymentResponse = new PaymentResponse("pay_123", "1", 70.00m, "PENDING", "qrcode_data", DateTime.UtcNow);
 
             var createDto = new CreateOrderDto(
                 CustomerId: 1,
@@ -219,8 +237,11 @@ namespace Orders.Tests.Application.Services.Service
                 Items: new List<CreateOrderItemDto>
                 {
                     new CreateOrderItemDto(1, 3),
-                    new CreateOrderItemDto(2, 2)                 }
+                    new CreateOrderItemDto(2, 2)
+                }
             );
+
+            var createdOrder = new Order { Id = 1, Number = 101, TotalAmount = 70.00m };
 
             _repositoryMock.Setup(r => r.GetNextOrderNumberAsync())
                 .ReturnsAsync(101);
@@ -232,6 +253,12 @@ namespace Orders.Tests.Application.Services.Service
                 .ReturnsAsync(product2);
 
             _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Order>()))
+                .ReturnsAsync(createdOrder);
+
+            _paymentClientMock.Setup(p => p.CreatePaymentAsync(It.IsAny<string>(), It.IsAny<decimal>()))
+                .ReturnsAsync(paymentResponse);
+
+            _repositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Order>()))
                 .ReturnsAsync((Order o) => o);
 
             var result = await _service.CreateAsync(createDto);
@@ -241,6 +268,7 @@ namespace Orders.Tests.Application.Services.Service
             result.Total.Should().Be(70.00m);
 
             _productsClientMock.Verify(p => p.GetProductByIdAsync(It.IsAny<int>()), Times.Exactly(2));
+            _paymentClientMock.Verify(p => p.CreatePaymentAsync(It.IsAny<string>(), It.IsAny<decimal>()), Times.Once);
         }
 
         [Fact]
@@ -327,6 +355,8 @@ namespace Orders.Tests.Application.Services.Service
         public async Task CreateAsync_WithNullCustomerId_CreatesOrderSuccessfully()
         {
             var product = new ProductResponse(1, "Produto", 15.00m, "Categoria", null, true, null);
+            var paymentResponse = new PaymentResponse("pay_123", "1", 15.00m, "PENDING", "qrcode_data", DateTime.UtcNow);
+
             var createDto = new CreateOrderDto(
                 CustomerId: null,
                 Observation: "Pedido sem cliente",
@@ -336,6 +366,10 @@ namespace Orders.Tests.Application.Services.Service
                 }
             );
 
+            var createdOrder = CreateSampleOrder();
+            createdOrder.Id = 1;
+            createdOrder.CustomerId = null;
+
             _repositoryMock.Setup(r => r.GetNextOrderNumberAsync())
                 .ReturnsAsync(100);
 
@@ -343,6 +377,12 @@ namespace Orders.Tests.Application.Services.Service
                 .ReturnsAsync(product);
 
             _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Order>()))
+                .ReturnsAsync(createdOrder);
+
+            _paymentClientMock.Setup(p => p.CreatePaymentAsync(It.IsAny<string>(), It.IsAny<decimal>()))
+                .ReturnsAsync(paymentResponse);
+
+            _repositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Order>()))
                 .ReturnsAsync((Order o) => o);
 
             var result = await _service.CreateAsync(createDto);
@@ -350,6 +390,43 @@ namespace Orders.Tests.Application.Services.Service
             result.Should().NotBeNull();
             result.CustomerId.Should().BeNull();
             result.Number.Should().Be(100);
+        }
+
+        [Fact]
+        public async Task CreateAsync_WhenPaymentApiFails_StillCreatesOrder()
+        {
+            var product = new ProductResponse(1, "Produto Teste", 25.50m, "Categoria", "Descrição", true, null);
+            var createDto = new CreateOrderDto(
+                CustomerId: 1,
+                Observation: "Pedido teste",
+                Items: new List<CreateOrderItemDto>
+                {
+                    new CreateOrderItemDto(1, 2)
+                }
+            );
+
+            var createdOrder = CreateSampleOrder();
+            createdOrder.Id = 1;
+
+            _repositoryMock.Setup(r => r.GetNextOrderNumberAsync())
+                .ReturnsAsync(100);
+
+            _productsClientMock.Setup(p => p.GetProductByIdAsync(1))
+                .ReturnsAsync(product);
+
+            _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Order>()))
+                .ReturnsAsync(createdOrder);
+
+            _paymentClientMock.Setup(p => p.CreatePaymentAsync(It.IsAny<string>(), It.IsAny<decimal>()))
+                .ThrowsAsync(new Exception("Payment API unavailable"));
+
+            var result = await _service.CreateAsync(createDto);
+
+            result.Should().NotBeNull();
+            result.Number.Should().Be(100);
+
+            _repositoryMock.Verify(r => r.AddAsync(It.IsAny<Order>()), Times.Once);
+            _paymentClientMock.Verify(p => p.CreatePaymentAsync(It.IsAny<string>(), It.IsAny<decimal>()), Times.Once);
         }
 
         #endregion

@@ -23,11 +23,6 @@ namespace Orders.API.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Webhook para receber notificações de pagamento
-        /// </summary>
-        /// <param name="webhookDto">Dados do pagamento</param>
-        /// <returns>Confirmação do processamento</returns>
         [HttpPost]
         [ProducesResponseType(typeof(PaymentWebhookResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -38,7 +33,6 @@ namespace Orders.API.Controllers
                 "Webhook recebido. OrderId: {OrderId}, Status: {Status}",
                 webhookDto.OrderId, webhookDto.Status);
 
-            // Validação básica
             if (string.IsNullOrWhiteSpace(webhookDto.OrderId))
             {
                 return BadRequest(new PaymentWebhookResponseDto(
@@ -73,9 +67,6 @@ namespace Orders.API.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// Endpoint para testar se o webhook está funcionando
-        /// </summary>
         [HttpGet("health")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult Health()

@@ -12,6 +12,7 @@ services:
       - mysql_data:/var/lib/mysql
     networks:
       - microservices_network
+      - fiap-net
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p123456"]
       interval: 10s
@@ -35,6 +36,7 @@ services:
         condition: service_healthy
     networks:
       - microservices_network
+      - fiap-net
     restart: on-failure
 
   # API de Pedidos
@@ -48,6 +50,7 @@ services:
       - ASPNETCORE_URLS=http://+:80
       - ConnectionStrings__DefaultConnection=server=mysql;port=3306;database=orders_db;user=root;password=123456;Persist Security Info=False;Connect Timeout=300
       - ProductsApi__BaseUrl=http://products_api:80
+      - PaymentApi__BaseUrl=http://host.docker.internal:8083
     ports:
       - "5002:80"
     depends_on:
@@ -57,11 +60,14 @@ services:
         condition: service_started
     networks:
       - microservices_network
+      - fiap-net
     restart: on-failure
 
 networks:
   microservices_network:
     driver: bridge
+  fiap-net:
+    external: true
 
 volumes:
   mysql_data:

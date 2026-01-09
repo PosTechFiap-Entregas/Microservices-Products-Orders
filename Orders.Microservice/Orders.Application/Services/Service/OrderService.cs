@@ -16,11 +16,13 @@ namespace Orders.Application.Services.Service
     {
         private readonly IOrderRepository _repository;
         private readonly IProductsHttpClient _productsClient;
+        private readonly IPaymentHttpClient _paymentClient;
 
-        public OrderService(IOrderRepository repository, IProductsHttpClient productsClient)
+        public OrderService(IOrderRepository repository, IProductsHttpClient productsClient, IPaymentHttpClient paymentClient)
         {
             _repository = repository;
             _productsClient = productsClient;
+            _paymentClient = paymentClient;
         }
 
         public async Task<OrderDto?> GetByIdAsync(int id)
@@ -87,6 +89,25 @@ namespace Orders.Application.Services.Service
             order.RecalculateTotal();
 
             var created = await _repository.AddAsync(order);
+
+            //Tentar criar pagamento após criar a order
+            try
+            {
+                var payment = await _paymentClient.CreatePaymentAsync(
+                    created.Id.ToString(),
+                    created.TotalAmount);
+
+                if (payment != null)
+                {
+                    created.SetPaymentId(payment.PaymentId);
+                    await _repository.UpdateAsync(created);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao criar pagamento: {ex.Message}");
+            }
+
             return MapToDto(created);
         }
 

@@ -23,9 +23,6 @@ namespace Products.API.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Obtém todos os produtos
-        /// </summary>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<ProductDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<ProductDto>>> GetAll()
@@ -34,9 +31,6 @@ namespace Products.API.Controllers
             return Ok(products);
         }
 
-        /// <summary>
-        /// Obtém um produto por ID
-        /// </summary>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(ProductDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -50,9 +44,6 @@ namespace Products.API.Controllers
             return Ok(product);
         }
 
-        /// <summary>
-        /// Obtém produtos ativos
-        /// </summary>
         [HttpGet("active")]
         [ProducesResponseType(typeof(IEnumerable<ProductDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<ProductDto>>> GetActive()
@@ -61,9 +52,6 @@ namespace Products.API.Controllers
             return Ok(products);
         }
 
-        /// <summary>
-        /// Obtém produtos por categoria
-        /// </summary>
         [HttpGet("category/{category}")]
         [ProducesResponseType(typeof(IEnumerable<ProductDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<ProductDto>>> GetByCategory(CategoryEnum category)
@@ -72,9 +60,6 @@ namespace Products.API.Controllers
             return Ok(products);
         }
 
-        /// <summary>
-        /// Cria um novo produto
-        /// </summary>
         [HttpPost]
         [ProducesResponseType(typeof(ProductDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -92,9 +77,6 @@ namespace Products.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Atualiza um produto existente
-        /// </summary>
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ProductDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -117,9 +99,6 @@ namespace Products.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Deleta um produto
-        /// </summary>
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

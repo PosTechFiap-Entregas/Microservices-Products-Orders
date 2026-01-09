@@ -23,9 +23,6 @@ namespace Orders.API.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Obtém todos os pedidos
-        /// </summary>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<OrderDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<OrderDto>>> GetAll()
@@ -34,9 +31,6 @@ namespace Orders.API.Controllers
             return Ok(orders);
         }
 
-        /// <summary>
-        /// Obtém um pedido por ID
-        /// </summary>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -50,9 +44,6 @@ namespace Orders.API.Controllers
             return Ok(order);
         }
 
-        /// <summary>
-        /// Obtém pedidos ativos (não finalizados)
-        /// </summary>
         [HttpGet("active")]
         [ProducesResponseType(typeof(IEnumerable<OrderDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<OrderDto>>> GetActive()
@@ -61,9 +52,6 @@ namespace Orders.API.Controllers
             return Ok(orders);
         }
 
-        /// <summary>
-        /// Obtém pedidos por status
-        /// </summary>
         [HttpGet("status/{status}")]
         [ProducesResponseType(typeof(IEnumerable<OrderDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<OrderDto>>> GetByStatus(OrderStatusEnum status)
@@ -72,9 +60,6 @@ namespace Orders.API.Controllers
             return Ok(orders);
         }
 
-        /// <summary>
-        /// Cria um novo pedido
-        /// </summary>
         [HttpPost]
         [ProducesResponseType(typeof(OrderDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -96,9 +81,6 @@ namespace Orders.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Atualiza o status de um pedido
-        /// </summary>
         [HttpPatch("{id}/status")]
         [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -125,9 +107,6 @@ namespace Orders.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Define o ID de pagamento de um pedido
-        /// </summary>
         [HttpPatch("{id}/payment")]
         [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -150,9 +129,6 @@ namespace Orders.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Deleta um pedido
-        /// </summary>
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
