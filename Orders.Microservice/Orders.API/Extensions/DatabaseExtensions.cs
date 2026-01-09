@@ -10,9 +10,6 @@ namespace Orders.API.Extensions
 {
     public static class DatabaseExtensions
     {
-        /// <summary>
-        /// Aplica migrations automáticas no banco de dados
-        /// </summary>
         public static IApplicationBuilder ApplyMigrations(this IApplicationBuilder app)
         {
             using var scope = app.ApplicationServices.CreateScope();

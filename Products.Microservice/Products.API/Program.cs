@@ -2,13 +2,10 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Products.API.Data;
 using Products.API.Extensions;
-using Products.Application.Services;
 using Products.Application.Services.Interface;
 using Products.Application.Services.Service;
-using Products.Domain.Interfaces;
 using Products.Domain.Interfaces.Repository;
 using Products.Infrastructure.Data;
 using Products.Infrastructure.Repositories;
@@ -61,11 +58,8 @@ builder.Services.AddHealthChecks()
 
 var app = builder.Build();
 
-// ============================================================
-// ?? CONFIGURAÇÃO DE BANCO DE DADOS (2 LINHAS!)
-// ============================================================
-app.ApplyMigrations();  // ?? Aplica migrations
-app.SeedDatabase();     // ?? Insere dados iniciais (opcional)
+app.ApplyMigrations();
+app.SeedDatabase();
 
 // Configure the HTTP request pipeline
 //if (app.Environment.IsDevelopment())
