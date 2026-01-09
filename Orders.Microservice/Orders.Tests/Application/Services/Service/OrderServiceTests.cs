@@ -189,6 +189,8 @@ namespace Orders.Tests.Application.Services.Service
 
             var createdOrder = CreateSampleOrder();
             createdOrder.Id = 1;
+            createdOrder.Items.First().UnitPrice = 25.50m;
+            createdOrder.RecalculateTotal();
 
             _repositoryMock.Setup(r => r.GetNextOrderNumberAsync())
                 .ReturnsAsync(100);
@@ -241,7 +243,17 @@ namespace Orders.Tests.Application.Services.Service
                 }
             );
 
-            var createdOrder = new Order { Id = 1, Number = 101, TotalAmount = 70.00m };
+            var createdOrder = new Order
+            {
+                Id = 1,
+                Number = 101,
+                Items = new List<OrderItem>
+                {
+                    new OrderItem { ProductId = 1, ProductName = "Produto 1", Quantity = 3, UnitPrice = 10.00m },
+                    new OrderItem { ProductId = 2, ProductName = "Produto 2", Quantity = 2, UnitPrice = 20.00m }
+                }
+            };
+            createdOrder.RecalculateTotal();
 
             _repositoryMock.Setup(r => r.GetNextOrderNumberAsync())
                 .ReturnsAsync(101);
