@@ -57,7 +57,7 @@ jobs:
           /o:"$env:SONAR_ORGANIZATION" `
           /d:sonar.token="$env:SONAR_TOKEN" `
           /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" `
-          /d:sonar.coverage.exclusions="**/Program.cs,**/*Extensions*.cs"
+          /d:sonar.coverage.exclusions="**/Program.cs,**/*Extensions*.cs,**/Migrations/**"
       
           dotnet build
       
