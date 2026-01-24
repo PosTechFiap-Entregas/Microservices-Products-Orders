@@ -9,7 +9,7 @@ namespace Orders.Tests.Application.DTOs
         [Fact]
         public void OrderDto_WithValidData_ShouldCreateSuccessfully()
         {
-            var id = 1;
+            var id = Guid.NewGuid();
             var customerId = 10;
             var status = OrderStatusEnum.RECEIVED;
             var observation = "Pedido teste";
@@ -46,12 +46,13 @@ namespace Orders.Tests.Application.DTOs
         [Fact]
         public void OrderDto_WithNullableFields_ShouldCreateSuccessfully()
         {
+            var id = Guid.NewGuid();
             var createdAt = DateTime.UtcNow;
             var updatedAt = DateTime.UtcNow;
             var items = new List<OrderItemDto>();
 
             var dto = new OrderDto(
-                1, null, OrderStatusEnum.RECEIVED, null, 100,
+                id, null, OrderStatusEnum.RECEIVED, null, 100,
                 null, PaymentStatusEnum.PENDING, 0m, createdAt, updatedAt, items
             );
 
@@ -63,12 +64,13 @@ namespace Orders.Tests.Application.DTOs
         [Fact]
         public void OrderDto_WithDifferentStatuses_ShouldStoreCorrectly()
         {
+            var id = Guid.NewGuid();
             var createdAt = DateTime.UtcNow;
             var updatedAt = DateTime.UtcNow;
             var items = new List<OrderItemDto>();
 
             var dto = new OrderDto(
-                1, 1, OrderStatusEnum.FINALIZED, "Obs", 100,
+                id, 1, OrderStatusEnum.FINALIZED, "Obs", 100,
                 "pay_123", PaymentStatusEnum.PAID, 100m, createdAt, updatedAt, items
             );
 
@@ -79,17 +81,18 @@ namespace Orders.Tests.Application.DTOs
         [Fact]
         public void OrderDto_EqualityComparison_ShouldWorkCorrectly()
         {
+            var id = Guid.NewGuid();
             var createdAt = new DateTime(2024, 1, 1);
             var updatedAt = new DateTime(2024, 1, 2);
             var items = new List<OrderItemDto>();
 
             var dto1 = new OrderDto(
-                1, 1, OrderStatusEnum.RECEIVED, "Obs", 100,
+                id, 1, OrderStatusEnum.RECEIVED, "Obs", 100,
                 "pay_123", PaymentStatusEnum.PENDING, 100m, createdAt, updatedAt, items
             );
 
             var dto2 = new OrderDto(
-                1, 1, OrderStatusEnum.RECEIVED, "Obs", 100,
+                id, 1, OrderStatusEnum.RECEIVED, "Obs", 100,
                 "pay_123", PaymentStatusEnum.PENDING, 100m, createdAt, updatedAt, items
             );
 

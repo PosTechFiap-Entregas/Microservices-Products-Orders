@@ -22,6 +22,7 @@ public class ProcessPaymentSteps
     private Order? _existingOrder;
     private PaymentWebhookDto? _webhookDto;
     private PaymentWebhookResponseDto? _result;
+    private Guid _currentOrderId;
 
     public ProcessPaymentSteps()
     {
@@ -31,20 +32,21 @@ public class ProcessPaymentSteps
     }
 
     [Given(@"an order with id (.*) exists with status ""(.*)""")]
-    public void GivenAnOrderExistsWithStatus(int orderId, string status)
+    public void GivenAnOrderExistsWithStatus(int orderNumber, string status)
     {
         var orderStatus = Enum.Parse<OrderStatusEnum>(status);
+        _currentOrderId = Guid.NewGuid();
 
         _existingOrder = new Order
         {
-            Id = orderId,
-            Number = orderId * 100,
+            Id = _currentOrderId,
+            Number = orderNumber * 100,
             Status = orderStatus,
             PaymentStatus = PaymentStatusEnum.PENDING,
             Items = new List<OrderItem>()
         };
 
-        _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(orderId))
+        _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(_currentOrderId))
             .ReturnsAsync(_existingOrder);
 
         _repositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Order>()))
@@ -52,21 +54,22 @@ public class ProcessPaymentSteps
     }
 
     [Given(@"an order with id (.*) exists with paymentId ""(.*)"" and status ""(.*)""")]
-    public void GivenAnOrderExistsWithPaymentIdAndStatus(int orderId, string paymentId, string status)
+    public void GivenAnOrderExistsWithPaymentIdAndStatus(int orderNumber, string paymentId, string status)
     {
         var paymentStatus = Enum.Parse<PaymentStatusEnum>(status);
+        _currentOrderId = Guid.NewGuid();
 
         _existingOrder = new Order
         {
-            Id = orderId,
-            Number = orderId * 100,
+            Id = _currentOrderId,
+            Number = orderNumber * 100,
             Status = OrderStatusEnum.IN_PREPARATION,
             PaymentId = paymentId,
             PaymentStatus = paymentStatus,
             Items = new List<OrderItem>()
         };
 
-        _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(orderId))
+        _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(_currentOrderId))
             .ReturnsAsync(_existingOrder);
     }
 
@@ -97,12 +100,15 @@ public class ProcessPaymentSteps
     [When(@"I receive a webhook for non-existent order ""(.*)""")]
     public async Task WhenIReceiveAWebhookForNonExistentOrder(string orderId)
     {
-        _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(It.IsAny<int>()))
+        // Parse do Guid recebido
+        var nonExistentOrderId = Guid.Parse(orderId);
+
+        _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(nonExistentOrderId))
             .ReturnsAsync((Order?)null);
 
         _webhookDto = new PaymentWebhookDto(
             Status: "PAID",
-            OrderId: orderId,
+            OrderId: orderId, // Usar o Guid recebido como string
             PaymentId: "pay_123"
         );
 

@@ -10,14 +10,14 @@ namespace Orders.Domain.Interfaces.Repository
 {
     public interface IOrderRepository
     {
-        Task<Order?> GetByIdAsync(int id);
-        Task<Order?> GetByIdWithItemsAsync(int id);
+        Task<Order?> GetByIdAsync(Guid id);
+        Task<Order?> GetByIdWithItemsAsync(Guid id);
         Task<IEnumerable<Order>> GetAllAsync();
         Task<IEnumerable<Order>> GetActiveOrdersAsync();
         Task<IEnumerable<Order>> GetByStatusAsync(OrderStatusEnum status);
         Task<Order> AddAsync(Order order);
         Task<Order> UpdateAsync(Order order);
-        Task<bool> DeleteAsync(int id);
+        Task<bool> DeleteAsync(Guid id);
         Task<int> GetNextOrderNumberAsync();
     }
 }

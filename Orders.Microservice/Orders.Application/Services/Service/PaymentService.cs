@@ -32,8 +32,8 @@ namespace Orders.Application.Services.Service
                     "Processando webhook de pagamento. OrderId: {OrderId}, Status: {Status}, PaymentId: {PaymentId}",
                     webhookDto.OrderId, webhookDto.Status, webhookDto.PaymentId);
 
-                // 1. Validar dados do webhook
-                if (!int.TryParse(webhookDto.OrderId, out int orderId))
+                // 1. Validar dados do webhook (agora Guid)
+                if (!Guid.TryParse(webhookDto.OrderId, out Guid orderId))
                 {
                     _logger.LogWarning("OrderId inválido: {OrderId}", webhookDto.OrderId);
                     return new PaymentWebhookResponseDto(

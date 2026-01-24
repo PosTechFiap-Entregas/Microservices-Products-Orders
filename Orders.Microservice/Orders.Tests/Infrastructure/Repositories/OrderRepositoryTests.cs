@@ -33,15 +33,15 @@ namespace Orders.Tests.Infrastructure.Repositories
         [Fact]
         public async Task GetByIdAsync_WithExistingOrder_ReturnsOrder()
         {
-            var order = CreateSampleOrder(1, 100);
+            var order = CreateSampleOrder(number: 100);
             await _context.Orders.AddAsync(order);
             await _context.SaveChangesAsync();
             _context.ChangeTracker.Clear();
 
-            var result = await _repository.GetByIdAsync(1);
+            var result = await _repository.GetByIdAsync(order.Id);
 
             result.Should().NotBeNull();
-            result!.Id.Should().Be(1);
+            result!.Id.Should().Be(order.Id);
             result.Number.Should().Be(100);
             result.Status.Should().Be(OrderStatusEnum.RECEIVED);
         }
@@ -49,7 +49,7 @@ namespace Orders.Tests.Infrastructure.Repositories
         [Fact]
         public async Task GetByIdAsync_WithNonExistingOrder_ReturnsNull()
         {
-            var result = await _repository.GetByIdAsync(999);
+            var result = await _repository.GetByIdAsync(Guid.NewGuid());
 
             result.Should().BeNull();
         }
@@ -57,12 +57,12 @@ namespace Orders.Tests.Infrastructure.Repositories
         [Fact]
         public async Task GetByIdAsync_ShouldNotIncludeItems()
         {
-            var order = CreateSampleOrder(1, 100);
+            var order = CreateSampleOrder(number: 100);
             await _context.Orders.AddAsync(order);
             await _context.SaveChangesAsync();
             _context.ChangeTracker.Clear();
 
-            var result = await _repository.GetByIdAsync(1);
+            var result = await _repository.GetByIdAsync(order.Id);
 
             result.Should().NotBeNull();
             result!.Items.Should().BeEmpty();
@@ -71,12 +71,12 @@ namespace Orders.Tests.Infrastructure.Repositories
         [Fact]
         public async Task GetByIdAsync_ShouldUseAsNoTracking()
         {
-            var order = CreateSampleOrder(1, 100);
+            var order = CreateSampleOrder(number: 100);
             await _context.Orders.AddAsync(order);
             await _context.SaveChangesAsync();
             _context.ChangeTracker.Clear();
 
-            var result = await _repository.GetByIdAsync(1);
+            var result = await _repository.GetByIdAsync(order.Id);
 
             result.Should().NotBeNull();
             var trackedEntities = _context.ChangeTracker.Entries<Order>().ToList();
@@ -90,15 +90,15 @@ namespace Orders.Tests.Infrastructure.Repositories
         [Fact]
         public async Task GetByIdWithItemsAsync_WithExistingOrder_ReturnsOrderWithItems()
         {
-            var order = CreateSampleOrder(1, 100);
+            var order = CreateSampleOrder(number: 100);
             await _context.Orders.AddAsync(order);
             await _context.SaveChangesAsync();
             _context.ChangeTracker.Clear();
 
-            var result = await _repository.GetByIdWithItemsAsync(1);
+            var result = await _repository.GetByIdWithItemsAsync(order.Id);
 
             result.Should().NotBeNull();
-            result!.Id.Should().Be(1);
+            result!.Id.Should().Be(order.Id);
             result.Number.Should().Be(100);
             result.Items.Should().HaveCount(2);
             result.Items.First().ProductName.Should().Be("Produto 1");
@@ -107,7 +107,7 @@ namespace Orders.Tests.Infrastructure.Repositories
         [Fact]
         public async Task GetByIdWithItemsAsync_WithNonExistingOrder_ReturnsNull()
         {
-            var result = await _repository.GetByIdWithItemsAsync(999);
+            var result = await _repository.GetByIdWithItemsAsync(Guid.NewGuid());
 
             result.Should().BeNull();
         }
@@ -115,12 +115,12 @@ namespace Orders.Tests.Infrastructure.Repositories
         [Fact]
         public async Task GetByIdWithItemsAsync_ShouldUseAsNoTracking()
         {
-            var order = CreateSampleOrder(1, 100);
+            var order = CreateSampleOrder(number: 100);
             await _context.Orders.AddAsync(order);
             await _context.SaveChangesAsync();
             _context.ChangeTracker.Clear();
 
-            var result = await _repository.GetByIdWithItemsAsync(1);
+            var result = await _repository.GetByIdWithItemsAsync(order.Id);
 
             result.Should().NotBeNull();
             var trackedEntities = _context.ChangeTracker.Entries<Order>().ToList();
@@ -134,9 +134,9 @@ namespace Orders.Tests.Infrastructure.Repositories
         [Fact]
         public async Task GetAllAsync_WithMultipleOrders_ReturnsAllOrdersWithItems()
         {
-            var order1 = CreateSampleOrder(1, 100);
-            var order2 = CreateSampleOrder(2, 101);
-            var order3 = CreateSampleOrder(3, 102);
+            var order1 = CreateSampleOrder(number: 100);
+            var order2 = CreateSampleOrder(number: 101);
+            var order3 = CreateSampleOrder(number: 102);
 
             await _context.Orders.AddRangeAsync(order1, order2, order3);
             await _context.SaveChangesAsync();
@@ -151,13 +151,13 @@ namespace Orders.Tests.Infrastructure.Repositories
         [Fact]
         public async Task GetAllAsync_ShouldOrderByCreatedAtDescending()
         {
-            var order1 = CreateSampleOrder(1, 100);
+            var order1 = CreateSampleOrder(number: 100);
             order1.CreatedAt = DateTime.UtcNow.AddHours(-3);
 
-            var order2 = CreateSampleOrder(2, 101);
+            var order2 = CreateSampleOrder(number: 101);
             order2.CreatedAt = DateTime.UtcNow.AddHours(-1);
 
-            var order3 = CreateSampleOrder(3, 102);
+            var order3 = CreateSampleOrder(number: 102);
             order3.CreatedAt = DateTime.UtcNow;
 
             await _context.Orders.AddRangeAsync(order1, order2, order3);
@@ -167,9 +167,7 @@ namespace Orders.Tests.Infrastructure.Repositories
             var result = (await _repository.GetAllAsync()).ToList();
 
             result.Should().HaveCount(3);
-            result[0].Id.Should().Be(3);
-            result[1].Id.Should().Be(2);
-            result[2].Id.Should().Be(1);
+            result.Select(o => o.Number).Should().ContainInOrder(102, 101, 100);
         }
 
         [Fact]
@@ -183,7 +181,7 @@ namespace Orders.Tests.Infrastructure.Repositories
         [Fact]
         public async Task GetAllAsync_ShouldIncludeItems()
         {
-            var order = CreateSampleOrder(1, 100);
+            var order = CreateSampleOrder(number: 100);
             await _context.Orders.AddAsync(order);
             await _context.SaveChangesAsync();
             _context.ChangeTracker.Clear();
@@ -201,10 +199,10 @@ namespace Orders.Tests.Infrastructure.Repositories
         [Fact]
         public async Task GetActiveOrdersAsync_ReturnsOnlyNonFinalizedOrders()
         {
-            var order1 = CreateSampleOrder(1, 100, OrderStatusEnum.RECEIVED);
-            var order2 = CreateSampleOrder(2, 101, OrderStatusEnum.IN_PREPARATION);
-            var order3 = CreateSampleOrder(3, 102, OrderStatusEnum.READY);
-            var order4 = CreateSampleOrder(4, 103, OrderStatusEnum.FINALIZED);
+            var order1 = CreateSampleOrder(number: 100, status: OrderStatusEnum.RECEIVED);
+            var order2 = CreateSampleOrder(number: 101, status: OrderStatusEnum.IN_PREPARATION);
+            var order3 = CreateSampleOrder(number: 102, status: OrderStatusEnum.READY);
+            var order4 = CreateSampleOrder(number: 103, status: OrderStatusEnum.FINALIZED);
 
             await _context.Orders.AddRangeAsync(order1, order2, order3, order4);
             await _context.SaveChangesAsync();
@@ -214,19 +212,19 @@ namespace Orders.Tests.Infrastructure.Repositories
 
             result.Should().HaveCount(3);
             result.Should().NotContain(o => o.Status == OrderStatusEnum.FINALIZED);
-            result.Select(o => o.Id).Should().BeEquivalentTo(new[] { 1, 2, 3 });
+            result.Select(o => o.Number).Should().BeEquivalentTo(new[] { 100, 101, 102 }, options => options.WithoutStrictOrdering());
         }
 
         [Fact]
         public async Task GetActiveOrdersAsync_ShouldOrderByCreatedAtAscending()
         {
-            var order1 = CreateSampleOrder(1, 100, OrderStatusEnum.RECEIVED);
+            var order1 = CreateSampleOrder(number: 100, status: OrderStatusEnum.RECEIVED);
             order1.CreatedAt = DateTime.UtcNow.AddHours(-3);
 
-            var order2 = CreateSampleOrder(2, 101, OrderStatusEnum.IN_PREPARATION);
+            var order2 = CreateSampleOrder(number: 101, status: OrderStatusEnum.IN_PREPARATION);
             order2.CreatedAt = DateTime.UtcNow.AddHours(-1);
 
-            var order3 = CreateSampleOrder(3, 102, OrderStatusEnum.READY);
+            var order3 = CreateSampleOrder(number: 102, status: OrderStatusEnum.READY);
             order3.CreatedAt = DateTime.UtcNow;
 
             await _context.Orders.AddRangeAsync(order1, order2, order3);
@@ -236,15 +234,13 @@ namespace Orders.Tests.Infrastructure.Repositories
             var result = (await _repository.GetActiveOrdersAsync()).ToList();
 
             result.Should().HaveCount(3);
-            result[0].Id.Should().Be(1); 
-            result[1].Id.Should().Be(2);
-            result[2].Id.Should().Be(3);
+            result.Select(o => o.Number).Should().ContainInOrder(100, 101, 102);
         }
 
         [Fact]
         public async Task GetActiveOrdersAsync_WithNoActiveOrders_ReturnsEmptyList()
         {
-            var order = CreateSampleOrder(1, 100, OrderStatusEnum.FINALIZED);
+            var order = CreateSampleOrder(number: 100, status: OrderStatusEnum.FINALIZED);
             await _context.Orders.AddAsync(order);
             await _context.SaveChangesAsync();
             _context.ChangeTracker.Clear();
@@ -257,7 +253,7 @@ namespace Orders.Tests.Infrastructure.Repositories
         [Fact]
         public async Task GetActiveOrdersAsync_ShouldIncludeItems()
         {
-            var order = CreateSampleOrder(1, 100, OrderStatusEnum.RECEIVED);
+            var order = CreateSampleOrder(number: 100, status: OrderStatusEnum.RECEIVED);
             await _context.Orders.AddAsync(order);
             await _context.SaveChangesAsync();
             _context.ChangeTracker.Clear();
@@ -279,11 +275,11 @@ namespace Orders.Tests.Infrastructure.Repositories
         [InlineData(OrderStatusEnum.FINALIZED)]
         public async Task GetByStatusAsync_WithSpecificStatus_ReturnsFilteredOrders(OrderStatusEnum status)
         {
-            var order1 = CreateSampleOrder(1, 100, status);
-            var order2 = CreateSampleOrder(2, 101, status);
+            var order1 = CreateSampleOrder(number: 100, status: status);
+            var order2 = CreateSampleOrder(number: 101, status: status);
 
             var otherStatus = status == OrderStatusEnum.FINALIZED ? OrderStatusEnum.RECEIVED : OrderStatusEnum.FINALIZED;
-            var order3 = CreateSampleOrder(3, 102, otherStatus);
+            var order3 = CreateSampleOrder(number: 102, status: otherStatus);
 
             await _context.Orders.AddRangeAsync(order1, order2, order3);
             await _context.SaveChangesAsync();
@@ -293,16 +289,16 @@ namespace Orders.Tests.Infrastructure.Repositories
 
             result.Should().HaveCount(2);
             result.All(o => o.Status == status).Should().BeTrue();
-            result.Select(o => o.Id).Should().BeEquivalentTo(new[] { 1, 2 });
+            result.Select(o => o.Number).Should().BeEquivalentTo(new[] { 100, 101 });
         }
 
         [Fact]
         public async Task GetByStatusAsync_ShouldOrderByCreatedAtAscending()
         {
-            var order1 = CreateSampleOrder(1, 100, OrderStatusEnum.RECEIVED);
+            var order1 = CreateSampleOrder(number: 100, status: OrderStatusEnum.RECEIVED);
             order1.CreatedAt = DateTime.UtcNow.AddHours(-2);
 
-            var order2 = CreateSampleOrder(2, 101, OrderStatusEnum.RECEIVED);
+            var order2 = CreateSampleOrder(number: 101, status: OrderStatusEnum.RECEIVED);
             order2.CreatedAt = DateTime.UtcNow;
 
             await _context.Orders.AddRangeAsync(order1, order2);
@@ -312,14 +308,13 @@ namespace Orders.Tests.Infrastructure.Repositories
             var result = (await _repository.GetByStatusAsync(OrderStatusEnum.RECEIVED)).ToList();
 
             result.Should().HaveCount(2);
-            result[0].Id.Should().Be(1);
-            result[1].Id.Should().Be(2);
+            result.Select(o => o.Number).Should().ContainInOrder(100, 101);
         }
 
         [Fact]
         public async Task GetByStatusAsync_WithNoMatchingStatus_ReturnsEmptyList()
         {
-            var order = CreateSampleOrder(1, 100, OrderStatusEnum.RECEIVED);
+            var order = CreateSampleOrder(number: 100, status: OrderStatusEnum.RECEIVED);
             await _context.Orders.AddAsync(order);
             await _context.SaveChangesAsync();
             _context.ChangeTracker.Clear();
@@ -332,7 +327,7 @@ namespace Orders.Tests.Infrastructure.Repositories
         [Fact]
         public async Task GetByStatusAsync_ShouldIncludeItems()
         {
-            var order = CreateSampleOrder(1, 100, OrderStatusEnum.RECEIVED);
+            var order = CreateSampleOrder(number: 100, status: OrderStatusEnum.RECEIVED);
             await _context.Orders.AddAsync(order);
             await _context.SaveChangesAsync();
             _context.ChangeTracker.Clear();
@@ -350,12 +345,12 @@ namespace Orders.Tests.Infrastructure.Repositories
         [Fact]
         public async Task AddAsync_WithValidOrder_SavesAndReturnsOrderWithItems()
         {
-            var order = CreateSampleOrder(0, 100);
+            var order = CreateSampleOrder(number: 100);
 
             var result = await _repository.AddAsync(order);
 
             result.Should().NotBeNull();
-            result.Id.Should().BeGreaterThan(0);
+            result.Id.Should().NotBe(Guid.Empty);
             result.Number.Should().Be(100);
             result.Items.Should().HaveCount(2);
         }
@@ -363,7 +358,7 @@ namespace Orders.Tests.Infrastructure.Repositories
         [Fact]
         public async Task AddAsync_ShouldPersistToDatabase()
         {
-            var order = CreateSampleOrder(0, 100);
+            var order = CreateSampleOrder(number: 100);
 
             await _repository.AddAsync(order);
 
@@ -403,14 +398,14 @@ namespace Orders.Tests.Infrastructure.Repositories
         [Fact]
         public async Task UpdateAsync_WithExistingOrder_UpdatesAndReturnsOrder()
         {
-            var order = CreateSampleOrder(1, 100);
+            var order = CreateSampleOrder(number: 100);
             await _context.Orders.AddAsync(order);
             await _context.SaveChangesAsync();
             _context.ChangeTracker.Clear();
 
             var orderToUpdate = await _context.Orders
                 .Include(o => o.Items)
-                .FirstAsync(o => o.Id == 1);
+                .FirstAsync(o => o.Id == order.Id);
 
             orderToUpdate.Observation = "Observação atualizada";
             orderToUpdate.Status = OrderStatusEnum.IN_PREPARATION;
@@ -425,7 +420,7 @@ namespace Orders.Tests.Infrastructure.Repositories
         [Fact]
         public async Task UpdateAsync_ShouldUpdateUpdatedAtField()
         {
-            var order = CreateSampleOrder(1, 100);
+            var order = CreateSampleOrder(number: 100);
             var originalUpdatedAt = order.UpdatedAt;
             await _context.Orders.AddAsync(order);
             await _context.SaveChangesAsync();
@@ -433,7 +428,7 @@ namespace Orders.Tests.Infrastructure.Repositories
 
             await Task.Delay(100);
 
-            var orderToUpdate = await _context.Orders.FirstAsync(o => o.Id == 1);
+            var orderToUpdate = await _context.Orders.FirstAsync(o => o.Id == order.Id);
 
             var result = await _repository.UpdateAsync(orderToUpdate);
 
@@ -443,18 +438,18 @@ namespace Orders.Tests.Infrastructure.Repositories
         [Fact]
         public async Task UpdateAsync_ShouldPersistChangesToDatabase()
         {
-            var order = CreateSampleOrder(1, 100);
+            var order = CreateSampleOrder(number: 100);
             await _context.Orders.AddAsync(order);
             await _context.SaveChangesAsync();
             _context.ChangeTracker.Clear();
 
-            var orderToUpdate = await _context.Orders.FirstAsync(o => o.Id == 1);
+            var orderToUpdate = await _context.Orders.FirstAsync(o => o.Id == order.Id);
             orderToUpdate.PaymentId = "pay_updated_123";
 
             await _repository.UpdateAsync(orderToUpdate);
             _context.ChangeTracker.Clear();
 
-            var updatedOrder = await _context.Orders.FindAsync(1);
+            var updatedOrder = await _context.Orders.FindAsync(order.Id);
             updatedOrder!.PaymentId.Should().Be("pay_updated_123");
         }
 
@@ -465,22 +460,22 @@ namespace Orders.Tests.Infrastructure.Repositories
         [Fact]
         public async Task DeleteAsync_WithExistingOrder_DeletesAndReturnsTrue()
         {
-            var order = CreateSampleOrder(1, 100);
+            var order = CreateSampleOrder(number: 100);
             await _context.Orders.AddAsync(order);
             await _context.SaveChangesAsync();
             _context.ChangeTracker.Clear();
 
-            var result = await _repository.DeleteAsync(1);
+            var result = await _repository.DeleteAsync(order.Id);
 
             result.Should().BeTrue();
-            var deletedOrder = await _context.Orders.FindAsync(1);
+            var deletedOrder = await _context.Orders.FindAsync(order.Id);
             deletedOrder.Should().BeNull();
         }
 
         [Fact]
         public async Task DeleteAsync_WithNonExistingOrder_ReturnsFalse()
         {
-            var result = await _repository.DeleteAsync(999);
+            var result = await _repository.DeleteAsync(Guid.NewGuid());
 
             result.Should().BeFalse();
         }
@@ -488,12 +483,12 @@ namespace Orders.Tests.Infrastructure.Repositories
         [Fact]
         public async Task DeleteAsync_ShouldRemoveFromDatabase()
         {
-            var order = CreateSampleOrder(1, 100);
+            var order = CreateSampleOrder(number: 100);
             await _context.Orders.AddAsync(order);
             await _context.SaveChangesAsync();
             _context.ChangeTracker.Clear();
 
-            await _repository.DeleteAsync(1);
+            await _repository.DeleteAsync(order.Id);
 
             var count = await _context.Orders.CountAsync();
             count.Should().Be(0);
@@ -502,11 +497,11 @@ namespace Orders.Tests.Infrastructure.Repositories
         [Fact]
         public async Task DeleteAsync_ShouldCascadeDeleteItems()
         {
-            var order = CreateSampleOrder(1, 100);
+            var order = CreateSampleOrder(number: 100);
             await _context.Orders.AddAsync(order);
             await _context.SaveChangesAsync();
 
-            await _repository.DeleteAsync(1);
+            await _repository.DeleteAsync(order.Id);
 
             var itemsCount = await _context.Set<OrderItem>().CountAsync();
             itemsCount.Should().Be(0);
@@ -527,9 +522,9 @@ namespace Orders.Tests.Infrastructure.Repositories
         [Fact]
         public async Task GetNextOrderNumberAsync_WithExistingOrders_ReturnsMaxPlusOne()
         {
-            var order1 = CreateSampleOrder(1, 100);
-            var order2 = CreateSampleOrder(2, 150);
-            var order3 = CreateSampleOrder(3, 125);
+            var order1 = CreateSampleOrder(number: 100);
+            var order2 = CreateSampleOrder(number: 150);
+            var order3 = CreateSampleOrder(number: 125);
 
             await _context.Orders.AddRangeAsync(order1, order2, order3);
             await _context.SaveChangesAsync();
@@ -544,7 +539,7 @@ namespace Orders.Tests.Infrastructure.Repositories
         {
             var firstNumber = await _repository.GetNextOrderNumberAsync();
 
-            var order = CreateSampleOrder(0, firstNumber);
+            var order = CreateSampleOrder(number: firstNumber);
             await _context.Orders.AddAsync(order);
             await _context.SaveChangesAsync();
 
@@ -557,8 +552,8 @@ namespace Orders.Tests.Infrastructure.Repositories
         [Fact]
         public async Task GetNextOrderNumberAsync_WithDeletedOrders_StillReturnsCorrectNumber()
         {
-            var order1 = CreateSampleOrder(1, 100);
-            var order2 = CreateSampleOrder(2, 101);
+            var order1 = CreateSampleOrder(number: 100);
+            var order2 = CreateSampleOrder(number: 101);
             await _context.Orders.AddRangeAsync(order1, order2);
             await _context.SaveChangesAsync();
 
@@ -575,13 +570,13 @@ namespace Orders.Tests.Infrastructure.Repositories
         #region Helper Methods
 
         private static Order CreateSampleOrder(
-            int id = 0,
+            Guid? id = null,
             int number = 100,
             OrderStatusEnum status = OrderStatusEnum.RECEIVED)
         {
             var order = new Order
             {
-                Id = id,
+                Id = id ?? Guid.NewGuid(),
                 CustomerId = 1,
                 Number = number,
                 Status = status,

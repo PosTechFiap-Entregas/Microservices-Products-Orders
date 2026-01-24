@@ -32,11 +32,12 @@ namespace Orders.Tests.Application.Services.Service
         [Fact]
         public async Task GetByIdAsync_WithExistingOrder_ReturnsOrderDto()
         {
-            var order = CreateSampleOrder();
-            _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(1))
+            var orderId = Guid.NewGuid();
+            var order = CreateSampleOrder(orderId);
+            _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(orderId))
                 .ReturnsAsync(order);
 
-            var result = await _service.GetByIdAsync(1);
+            var result = await _service.GetByIdAsync(orderId);
 
             result.Should().NotBeNull();
             result!.Id.Should().Be(order.Id);
@@ -45,19 +46,20 @@ namespace Orders.Tests.Application.Services.Service
             result.Total.Should().Be(order.TotalAmount);
             result.Items.Should().HaveCount(order.Items.Count);
 
-            _repositoryMock.Verify(r => r.GetByIdWithItemsAsync(1), Times.Once);
+            _repositoryMock.Verify(r => r.GetByIdWithItemsAsync(orderId), Times.Once);
         }
 
         [Fact]
         public async Task GetByIdAsync_WithNonExistingOrder_ReturnsNull()
         {
-            _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(999))
+            var orderId = Guid.NewGuid();
+            _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(orderId))
                 .ReturnsAsync((Order?)null);
 
-            var result = await _service.GetByIdAsync(999);
+            var result = await _service.GetByIdAsync(orderId);
 
             result.Should().BeNull();
-            _repositoryMock.Verify(r => r.GetByIdWithItemsAsync(999), Times.Once);
+            _repositoryMock.Verify(r => r.GetByIdWithItemsAsync(orderId), Times.Once);
         }
 
         #endregion
@@ -67,11 +69,15 @@ namespace Orders.Tests.Application.Services.Service
         [Fact]
         public async Task GetAllAsync_WithOrders_ReturnsAllOrders()
         {
+            var order1Id = Guid.NewGuid();
+            var order2Id = Guid.NewGuid();
+            var order3Id = Guid.NewGuid();
+
             var orders = new List<Order>
             {
-                CreateSampleOrder(1, 100),
-                CreateSampleOrder(2, 101),
-                CreateSampleOrder(3, 102)
+                CreateSampleOrder(order1Id, 100),
+                CreateSampleOrder(order2Id, 101),
+                CreateSampleOrder(order3Id, 102)
             };
 
             _repositoryMock.Setup(r => r.GetAllAsync())
@@ -81,7 +87,7 @@ namespace Orders.Tests.Application.Services.Service
 
             result.Should().NotBeNull();
             result.Should().HaveCount(3);
-            result.Select(o => o.Id).Should().BeEquivalentTo(new[] { 1, 2, 3 });
+            result.Select(o => o.Id).Should().BeEquivalentTo(new[] { order1Id, order2Id, order3Id });
 
             _repositoryMock.Verify(r => r.GetAllAsync(), Times.Once);
         }
@@ -109,8 +115,8 @@ namespace Orders.Tests.Application.Services.Service
         {
             var activeOrders = new List<Order>
             {
-                CreateSampleOrder(1, 100, OrderStatusEnum.RECEIVED),
-                CreateSampleOrder(2, 101, OrderStatusEnum.IN_PREPARATION)
+                CreateSampleOrder(Guid.NewGuid(), 100, OrderStatusEnum.RECEIVED),
+                CreateSampleOrder(Guid.NewGuid(), 101, OrderStatusEnum.IN_PREPARATION)
             };
 
             _repositoryMock.Setup(r => r.GetActiveOrdersAsync())
@@ -152,8 +158,8 @@ namespace Orders.Tests.Application.Services.Service
         {
             var orders = new List<Order>
             {
-                CreateSampleOrder(1, 100, status),
-                CreateSampleOrder(2, 101, status)
+                CreateSampleOrder(Guid.NewGuid(), 100, status),
+                CreateSampleOrder(Guid.NewGuid(), 101, status)
             };
 
             _repositoryMock.Setup(r => r.GetByStatusAsync(status))
@@ -176,7 +182,8 @@ namespace Orders.Tests.Application.Services.Service
         public async Task CreateAsync_WithValidData_CreatesOrderSuccessfully()
         {
             var product = new ProductResponse(1, "Produto Teste", 25.50m, "Categoria", "Descrição", true, null);
-            var paymentResponse = new PaymentResponse("pay_123", "1", 51.00m, "PENDING", "qrcode_data", DateTime.UtcNow);
+            var createdOrderId = Guid.NewGuid();
+            var paymentResponse = new PaymentResponse("pay_123", createdOrderId.ToString(), 51.00m, "PENDING", "qrcode_data", DateTime.UtcNow);
 
             var createDto = new CreateOrderDto(
                 CustomerId: 1,
@@ -187,8 +194,7 @@ namespace Orders.Tests.Application.Services.Service
                 }
             );
 
-            var createdOrder = CreateSampleOrder();
-            createdOrder.Id = 1;
+            var createdOrder = CreateSampleOrder(createdOrderId);
             createdOrder.Items.First().UnitPrice = 25.50m;
             createdOrder.RecalculateTotal();
 
@@ -231,7 +237,8 @@ namespace Orders.Tests.Application.Services.Service
         {
             var product1 = new ProductResponse(1, "Produto 1", 10.00m, "Categoria", null, true, null);
             var product2 = new ProductResponse(2, "Produto 2", 20.00m, "Categoria", null, true, null);
-            var paymentResponse = new PaymentResponse("pay_123", "1", 70.00m, "PENDING", "qrcode_data", DateTime.UtcNow);
+            var createdOrderId = Guid.NewGuid();
+            var paymentResponse = new PaymentResponse("pay_123", createdOrderId.ToString(), 70.00m, "PENDING", "qrcode_data", DateTime.UtcNow);
 
             var createDto = new CreateOrderDto(
                 CustomerId: 1,
@@ -245,7 +252,7 @@ namespace Orders.Tests.Application.Services.Service
 
             var createdOrder = new Order
             {
-                Id = 1,
+                Id = createdOrderId,
                 Number = 101,
                 Items = new List<OrderItem>
                 {
@@ -367,7 +374,8 @@ namespace Orders.Tests.Application.Services.Service
         public async Task CreateAsync_WithNullCustomerId_CreatesOrderSuccessfully()
         {
             var product = new ProductResponse(1, "Produto", 15.00m, "Categoria", null, true, null);
-            var paymentResponse = new PaymentResponse("pay_123", "1", 15.00m, "PENDING", "qrcode_data", DateTime.UtcNow);
+            var createdOrderId = Guid.NewGuid();
+            var paymentResponse = new PaymentResponse("pay_123", createdOrderId.ToString(), 15.00m, "PENDING", "qrcode_data", DateTime.UtcNow);
 
             var createDto = new CreateOrderDto(
                 CustomerId: null,
@@ -378,8 +386,7 @@ namespace Orders.Tests.Application.Services.Service
                 }
             );
 
-            var createdOrder = CreateSampleOrder();
-            createdOrder.Id = 1;
+            var createdOrder = CreateSampleOrder(createdOrderId);
             createdOrder.CustomerId = null;
 
             _repositoryMock.Setup(r => r.GetNextOrderNumberAsync())
@@ -417,8 +424,7 @@ namespace Orders.Tests.Application.Services.Service
                 }
             );
 
-            var createdOrder = CreateSampleOrder();
-            createdOrder.Id = 1;
+            var createdOrder = CreateSampleOrder(Guid.NewGuid());
 
             _repositoryMock.Setup(r => r.GetNextOrderNumberAsync())
                 .ReturnsAsync(100);
@@ -454,7 +460,7 @@ namespace Orders.Tests.Application.Services.Service
 
             var createdOrder = new Order
             {
-                Id = 1,
+                Id = Guid.NewGuid(),
                 Number = 100,
                 Items = new List<OrderItem> { new OrderItem { ProductId = 1, ProductName = "Produto", Quantity = 2, UnitPrice = 10.00m } }
             };
@@ -474,10 +480,11 @@ namespace Orders.Tests.Application.Services.Service
         }
 
         [Fact]
-        public async Task CreateAsync_WhenRepositoryReturnsOrderWithIdZero_CallsPaymentWithZeroString()
+        public async Task CreateAsync_WhenRepositoryReturnsOrder_CallsPaymentWithGuidString()
         {
             var product = new ProductResponse(1, "Produto", 5.00m, "Categoria", null, true, null);
-            var paymentResponse = new PaymentResponse("pay_abc", "0", 10.00m, "PENDING", "qrcode", DateTime.UtcNow);
+            var createdOrderId = Guid.NewGuid();
+            var paymentResponse = new PaymentResponse("pay_abc", createdOrderId.ToString(), 10.00m, "PENDING", "qrcode", DateTime.UtcNow);
 
             var createDto = new CreateOrderDto(
                 CustomerId: 1,
@@ -487,7 +494,7 @@ namespace Orders.Tests.Application.Services.Service
 
             var createdOrder = new Order
             {
-                Id = 0,
+                Id = createdOrderId,
                 Number = 101,
                 Items = new List<OrderItem> { new OrderItem { ProductId = 1, ProductName = "Produto", Quantity = 2, UnitPrice = 5.00m } }
             };
@@ -496,13 +503,13 @@ namespace Orders.Tests.Application.Services.Service
             _repositoryMock.Setup(r => r.GetNextOrderNumberAsync()).ReturnsAsync(101);
             _productsClientMock.Setup(p => p.GetProductByIdAsync(1)).ReturnsAsync(product);
             _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Order>())).ReturnsAsync(createdOrder);
-            _paymentClientMock.Setup(p => p.CreatePaymentAsync("0", createdOrder.TotalAmount)).ReturnsAsync(paymentResponse);
+            _paymentClientMock.Setup(p => p.CreatePaymentAsync(createdOrderId.ToString(), createdOrder.TotalAmount)).ReturnsAsync(paymentResponse);
             _repositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Order>())).ReturnsAsync((Order o) => o);
 
             var result = await _service.CreateAsync(createDto);
 
             result.Should().NotBeNull();
-            _paymentClientMock.Verify(p => p.CreatePaymentAsync("0", createdOrder.TotalAmount), Times.Once);
+            _paymentClientMock.Verify(p => p.CreatePaymentAsync(createdOrderId.ToString(), createdOrder.TotalAmount), Times.Once);
             _repositoryMock.Verify(r => r.UpdateAsync(It.Is<Order>(o => o.PaymentId == "pay_abc")), Times.Once);
         }
 
@@ -519,7 +526,7 @@ namespace Orders.Tests.Application.Services.Service
 
             var createdOrder = new Order
             {
-                Id = 1,
+                Id = Guid.NewGuid(),
                 Number = 102,
                 Items = new List<OrderItem> { new OrderItem { ProductId = 1, ProductName = "Produto", Quantity = 1, UnitPrice = 7.50m } }
             };
@@ -547,36 +554,38 @@ namespace Orders.Tests.Application.Services.Service
         [Fact]
         public async Task UpdateStatusAsync_WithValidStatus_UpdatesSuccessfully()
         {
-            var order = CreateSampleOrder(1, 100, OrderStatusEnum.RECEIVED);
+            var orderId = Guid.NewGuid();
+            var order = CreateSampleOrder(orderId, 100, OrderStatusEnum.RECEIVED);
             var updateDto = new UpdateOrderStatusDto(OrderStatusEnum.IN_PREPARATION);
 
-            _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(1))
+            _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(orderId))
                 .ReturnsAsync(order);
 
             _repositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Order>()))
                 .ReturnsAsync((Order o) => o);
 
-            var result = await _service.UpdateStatusAsync(1, updateDto);
+            var result = await _service.UpdateStatusAsync(orderId, updateDto);
 
             result.Should().NotBeNull();
             result.Status.Should().Be(OrderStatusEnum.IN_PREPARATION);
 
-            _repositoryMock.Verify(r => r.GetByIdWithItemsAsync(1), Times.Once);
+            _repositoryMock.Verify(r => r.GetByIdWithItemsAsync(orderId), Times.Once);
             _repositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Order>()), Times.Once);
         }
 
         [Fact]
         public async Task UpdateStatusAsync_WithNonExistentOrder_ThrowsKeyNotFoundException()
         {
+            var orderId = Guid.NewGuid();
             var updateDto = new UpdateOrderStatusDto(OrderStatusEnum.IN_PREPARATION);
 
-            _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(999))
+            _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(orderId))
                 .ReturnsAsync((Order?)null);
 
-            Func<Task> act = async () => await _service.UpdateStatusAsync(999, updateDto);
+            Func<Task> act = async () => await _service.UpdateStatusAsync(orderId, updateDto);
 
             await act.Should().ThrowAsync<KeyNotFoundException>()
-                .WithMessage("Pedido com ID 999 não encontrado");
+                .WithMessage($"Pedido com ID {orderId} não encontrado");
 
             _repositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Order>()), Times.Never);
         }
@@ -584,13 +593,14 @@ namespace Orders.Tests.Application.Services.Service
         [Fact]
         public async Task UpdateStatusAsync_WithInvalidTransition_ThrowsInvalidOperationException()
         {
-            var order = CreateSampleOrder(1, 100, OrderStatusEnum.RECEIVED);
+            var orderId = Guid.NewGuid();
+            var order = CreateSampleOrder(orderId, 100, OrderStatusEnum.RECEIVED);
             var updateDto = new UpdateOrderStatusDto(OrderStatusEnum.FINALIZED);
 
-            _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(1))
+            _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(orderId))
                 .ReturnsAsync(order);
 
-            Func<Task> act = async () => await _service.UpdateStatusAsync(1, updateDto);
+            Func<Task> act = async () => await _service.UpdateStatusAsync(orderId, updateDto);
 
             await act.Should().ThrowAsync<InvalidOperationException>();
 
@@ -604,36 +614,38 @@ namespace Orders.Tests.Application.Services.Service
         [Fact]
         public async Task SetPaymentIdAsync_WithValidPaymentId_UpdatesSuccessfully()
         {
-            var order = CreateSampleOrder(1, 100);
+            var orderId = Guid.NewGuid();
+            var order = CreateSampleOrder(orderId, 100);
             var setPaymentDto = new SetPaymentIdDto("pay_123456");
 
-            _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(1))
+            _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(orderId))
                 .ReturnsAsync(order);
 
             _repositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Order>()))
                 .ReturnsAsync((Order o) => o);
 
-            var result = await _service.SetPaymentIdAsync(1, setPaymentDto);
+            var result = await _service.SetPaymentIdAsync(orderId, setPaymentDto);
 
             result.Should().NotBeNull();
             result.PaymentId.Should().Be("pay_123456");
 
-            _repositoryMock.Verify(r => r.GetByIdWithItemsAsync(1), Times.Once);
+            _repositoryMock.Verify(r => r.GetByIdWithItemsAsync(orderId), Times.Once);
             _repositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Order>()), Times.Once);
         }
 
         [Fact]
         public async Task SetPaymentIdAsync_WithNonExistentOrder_ThrowsKeyNotFoundException()
         {
+            var orderId = Guid.NewGuid();
             var setPaymentDto = new SetPaymentIdDto("pay_123456");
 
-            _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(999))
+            _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(orderId))
                 .ReturnsAsync((Order?)null);
 
-            Func<Task> act = async () => await _service.SetPaymentIdAsync(999, setPaymentDto);
+            Func<Task> act = async () => await _service.SetPaymentIdAsync(orderId, setPaymentDto);
 
             await act.Should().ThrowAsync<KeyNotFoundException>()
-                .WithMessage("Pedido com ID 999 não encontrado");
+                .WithMessage($"Pedido com ID {orderId} não encontrado");
 
             _repositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Order>()), Times.Never);
         }
@@ -641,13 +653,14 @@ namespace Orders.Tests.Application.Services.Service
         [Fact]
         public async Task SetPaymentIdAsync_WithEmptyPaymentId_ThrowsArgumentException()
         {
-            var order = CreateSampleOrder(1, 100);
+            var orderId = Guid.NewGuid();
+            var order = CreateSampleOrder(orderId, 100);
             var setPaymentDto = new SetPaymentIdDto("");
 
-            _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(1))
+            _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(orderId))
                 .ReturnsAsync(order);
 
-            Func<Task> act = async () => await _service.SetPaymentIdAsync(1, setPaymentDto);
+            Func<Task> act = async () => await _service.SetPaymentIdAsync(orderId, setPaymentDto);
 
             await act.Should().ThrowAsync<ArgumentException>()
                 .WithMessage("PaymentId não pode ser vazio");
@@ -662,25 +675,27 @@ namespace Orders.Tests.Application.Services.Service
         [Fact]
         public async Task DeleteAsync_WithExistingOrder_ReturnsTrue()
         {
-            _repositoryMock.Setup(r => r.DeleteAsync(1))
+            var orderId = Guid.NewGuid();
+            _repositoryMock.Setup(r => r.DeleteAsync(orderId))
                 .ReturnsAsync(true);
 
-            var result = await _service.DeleteAsync(1);
+            var result = await _service.DeleteAsync(orderId);
 
             result.Should().BeTrue();
-            _repositoryMock.Verify(r => r.DeleteAsync(1), Times.Once);
+            _repositoryMock.Verify(r => r.DeleteAsync(orderId), Times.Once);
         }
 
         [Fact]
         public async Task DeleteAsync_WithNonExistentOrder_ReturnsFalse()
         {
-            _repositoryMock.Setup(r => r.DeleteAsync(999))
+            var orderId = Guid.NewGuid();
+            _repositoryMock.Setup(r => r.DeleteAsync(orderId))
                 .ReturnsAsync(false);
 
-            var result = await _service.DeleteAsync(999);
+            var result = await _service.DeleteAsync(orderId);
 
             result.Should().BeFalse();
-            _repositoryMock.Verify(r => r.DeleteAsync(999), Times.Once);
+            _repositoryMock.Verify(r => r.DeleteAsync(orderId), Times.Once);
         }
 
         #endregion
@@ -688,13 +703,14 @@ namespace Orders.Tests.Application.Services.Service
         #region Helper Methods
 
         private static Order CreateSampleOrder(
-            int id = 1,
+            Guid? id = null,
             int number = 100,
             OrderStatusEnum status = OrderStatusEnum.RECEIVED)
         {
+            var orderId = id ?? Guid.NewGuid();
             var order = new Order
             {
-                Id = id,
+                Id = orderId,
                 CustomerId = 1,
                 Number = number,
                 Status = status,
@@ -707,7 +723,7 @@ namespace Orders.Tests.Application.Services.Service
                     new OrderItem
                     {
                         Id = 1,
-                        OrderId = id,
+                        OrderId = orderId,
                         ProductId = 1,
                         ProductName = "Produto Teste",
                         Quantity = 2,

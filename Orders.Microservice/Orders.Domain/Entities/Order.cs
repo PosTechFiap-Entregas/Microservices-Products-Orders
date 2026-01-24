@@ -7,7 +7,7 @@ namespace Orders.Domain.Entities
 {
     public class Order
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
         public int? CustomerId { get; set; }
         public OrderStatusEnum Status { get; set; } = OrderStatusEnum.RECEIVED;
         public string? Observation { get; set; }

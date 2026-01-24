@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Orders.Application.DTOs
 {
     public record OrderDto(
-        int Id,
+        Guid Id,
         int? CustomerId,
         OrderStatusEnum Status,
         string? Observation,

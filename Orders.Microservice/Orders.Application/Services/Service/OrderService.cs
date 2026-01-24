@@ -25,7 +25,7 @@ namespace Orders.Application.Services.Service
             _paymentClient = paymentClient;
         }
 
-        public async Task<OrderDto?> GetByIdAsync(int id)
+        public async Task<OrderDto?> GetByIdAsync(Guid id)
         {
             var order = await _repository.GetByIdWithItemsAsync(id);
             return order != null ? MapToDto(order) : null;
@@ -111,7 +111,7 @@ namespace Orders.Application.Services.Service
             return MapToDto(created);
         }
 
-        public async Task<OrderDto> UpdateStatusAsync(int id, UpdateOrderStatusDto dto)
+        public async Task<OrderDto> UpdateStatusAsync(Guid id, UpdateOrderStatusDto dto)
         {
             var order = await _repository.GetByIdWithItemsAsync(id)
                 ?? throw new KeyNotFoundException($"Pedido com ID {id} não encontrado");
@@ -122,7 +122,7 @@ namespace Orders.Application.Services.Service
             return MapToDto(updated);
         }
 
-        public async Task<OrderDto> SetPaymentIdAsync(int id, SetPaymentIdDto dto)
+        public async Task<OrderDto> SetPaymentIdAsync(Guid id, SetPaymentIdDto dto)
         {
             var order = await _repository.GetByIdWithItemsAsync(id)
                 ?? throw new KeyNotFoundException($"Pedido com ID {id} não encontrado");
@@ -133,7 +133,7 @@ namespace Orders.Application.Services.Service
             return MapToDto(updated);
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(Guid id)
         {
             return await _repository.DeleteAsync(id);
         }

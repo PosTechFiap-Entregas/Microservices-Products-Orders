@@ -14,7 +14,7 @@ namespace Orders.Tests.Domain.Entities
             var orderItem = new OrderItem();
 
             orderItem.Id.Should().Be(0);
-            orderItem.OrderId.Should().Be(0);
+            orderItem.OrderId.Should().Be(Guid.Empty);
             orderItem.ProductId.Should().Be(0);
             orderItem.ProductName.Should().Be(string.Empty);
             orderItem.Quantity.Should().Be(0);
@@ -26,12 +26,13 @@ namespace Orders.Tests.Domain.Entities
         [Fact]
         public void OrderItem_WhenCreatedWithValues_ShouldStoreCorrectly()
         {
+            var orderId = Guid.NewGuid();
             var createdAt = DateTime.UtcNow.AddDays(-1);
 
             var orderItem = new OrderItem
             {
                 Id = 1,
-                OrderId = 10,
+                OrderId = orderId,
                 ProductId = 5,
                 ProductName = "Produto Teste",
                 Quantity = 3,
@@ -40,7 +41,7 @@ namespace Orders.Tests.Domain.Entities
             };
 
             orderItem.Id.Should().Be(1);
-            orderItem.OrderId.Should().Be(10);
+            orderItem.OrderId.Should().Be(orderId);
             orderItem.ProductId.Should().Be(5);
             orderItem.ProductName.Should().Be("Produto Teste");
             orderItem.Quantity.Should().Be(3);
@@ -215,16 +216,17 @@ namespace Orders.Tests.Domain.Entities
         [Fact]
         public void Order_NavigationProperty_CanBeSet()
         {
+            var orderId = Guid.NewGuid();
             var order = new Order
             {
-                Id = 1,
+                Id = orderId,
                 Number = 100,
                 Status = OrderStatusEnum.RECEIVED
             };
 
             var orderItem = new OrderItem
             {
-                OrderId = 1,
+                OrderId = orderId,
                 ProductId = 5,
                 Quantity = 2,
                 UnitPrice = 25.00m
@@ -233,7 +235,7 @@ namespace Orders.Tests.Domain.Entities
             orderItem.Order = order;
 
             orderItem.Order.Should().NotBeNull();
-            orderItem.Order.Id.Should().Be(1);
+            orderItem.Order.Id.Should().Be(orderId);
             orderItem.Order.Number.Should().Be(100);
             orderItem.OrderId.Should().Be(orderItem.Order.Id);
         }
@@ -376,9 +378,10 @@ namespace Orders.Tests.Domain.Entities
         [Fact]
         public void OrderItem_CompleteScenario_AllPropertiesWorkTogether()
         {
+            var orderId = Guid.NewGuid();
             var order = new Order
             {
-                Id = 100,
+                Id = orderId,
                 Number = 1001,
                 Status = OrderStatusEnum.RECEIVED
             };
@@ -388,7 +391,7 @@ namespace Orders.Tests.Domain.Entities
             var orderItem = new OrderItem
             {
                 Id = 1,
-                OrderId = 100,
+                OrderId = orderId,
                 ProductId = 42,
                 ProductName = "Hambúrguer Especial",
                 Quantity = 2,
@@ -398,7 +401,7 @@ namespace Orders.Tests.Domain.Entities
             };
 
             orderItem.Id.Should().Be(1);
-            orderItem.OrderId.Should().Be(100);
+            orderItem.OrderId.Should().Be(orderId);
             orderItem.ProductId.Should().Be(42);
             orderItem.ProductName.Should().Be("Hambúrguer Especial");
             orderItem.Quantity.Should().Be(2);
@@ -406,7 +409,7 @@ namespace Orders.Tests.Domain.Entities
             orderItem.Subtotal.Should().Be(57.80m);
             orderItem.CreatedAt.Should().Be(createdDate);
             orderItem.Order.Should().NotBeNull();
-            orderItem.Order.Id.Should().Be(100);
+            orderItem.Order.Id.Should().Be(orderId);
         }
 
         [Fact]

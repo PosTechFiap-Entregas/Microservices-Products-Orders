@@ -20,14 +20,14 @@ namespace Orders.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Order?> GetByIdAsync(int id)
+        public async Task<Order?> GetByIdAsync(Guid id)
         {
             return await _context.Orders
                 .AsNoTracking()
                 .FirstOrDefaultAsync(o => o.Id == id);
         }
 
-        public async Task<Order?> GetByIdWithItemsAsync(int id)
+        public async Task<Order?> GetByIdWithItemsAsync(Guid id)
         {
             return await _context.Orders
                 .Include(o => o.Items)
@@ -83,7 +83,7 @@ namespace Orders.Infrastructure.Repositories
             return (await GetByIdWithItemsAsync(order.Id))!;
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(Guid id)
         {
             var order = await _context.Orders.FindAsync(id);
             if (order == null)

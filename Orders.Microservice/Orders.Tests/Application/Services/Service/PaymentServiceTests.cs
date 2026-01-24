@@ -25,9 +25,10 @@ public class PaymentServiceTests
     [Fact]
     public async Task ProcessWebhookAsync_WithValidPaidWebhook_ProcessesSuccessfully()
     {
+        var orderId = Guid.NewGuid();
         var order = new Order
         {
-            Id = 1,
+            Id = orderId,
             Number = 100,
             Status = OrderStatusEnum.RECEIVED,
             PaymentStatus = PaymentStatusEnum.PENDING,
@@ -36,11 +37,11 @@ public class PaymentServiceTests
 
         var webhookDto = new PaymentWebhookDto(
             Status: "PAID",
-            OrderId: "1",
+            OrderId: orderId.ToString(),
             PaymentId: "pay_123456"
         );
 
-        _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(1))
+        _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(orderId))
             .ReturnsAsync(order);
 
         _repositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Order>()))
@@ -53,7 +54,7 @@ public class PaymentServiceTests
         result.Message.Should().Contain("PAID");
         result.OrderNumber.Should().Be(100);
 
-        _repositoryMock.Verify(r => r.GetByIdWithItemsAsync(1), Times.Once);
+        _repositoryMock.Verify(r => r.GetByIdWithItemsAsync(orderId), Times.Once);
         _repositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Order>()), Times.Once);
     }
 
@@ -72,19 +73,20 @@ public class PaymentServiceTests
         result.Success.Should().BeFalse();
         result.Message.Should().Contain("OrderId inválido");
 
-        _repositoryMock.Verify(r => r.GetByIdWithItemsAsync(It.IsAny<int>()), Times.Never);
+        _repositoryMock.Verify(r => r.GetByIdWithItemsAsync(It.IsAny<Guid>()), Times.Never);
     }
 
     [Fact]
     public async Task ProcessWebhookAsync_WithNonExistentOrder_ReturnsFailure()
     {
+        var orderId = Guid.NewGuid();
         var webhookDto = new PaymentWebhookDto(
             Status: "PAID",
-            OrderId: "999",
+            OrderId: orderId.ToString(),
             PaymentId: "pay_123"
         );
 
-        _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(999))
+        _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(orderId))
             .ReturnsAsync((Order?)null);
 
         var result = await _service.ProcessWebhookAsync(webhookDto);
@@ -93,16 +95,17 @@ public class PaymentServiceTests
         result.Success.Should().BeFalse();
         result.Message.Should().Contain("não encontrado");
 
-        _repositoryMock.Verify(r => r.GetByIdWithItemsAsync(999), Times.Once);
+        _repositoryMock.Verify(r => r.GetByIdWithItemsAsync(orderId), Times.Once);
         _repositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Order>()), Times.Never);
     }
 
     [Fact]
     public async Task ProcessWebhookAsync_WithDuplicateWebhook_ReturnsDuplicateMessage()
     {
+        var orderId = Guid.NewGuid();
         var order = new Order
         {
-            Id = 1,
+            Id = orderId,
             Number = 100,
             PaymentId = "pay_123",
             PaymentStatus = PaymentStatusEnum.PAID,
@@ -111,11 +114,11 @@ public class PaymentServiceTests
 
         var webhookDto = new PaymentWebhookDto(
             Status: "PAID",
-            OrderId: "1",
+            OrderId: orderId.ToString(),
             PaymentId: "pay_123"
         );
 
-        _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(1))
+        _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(orderId))
             .ReturnsAsync(order);
 
         var result = await _service.ProcessWebhookAsync(webhookDto);
@@ -135,9 +138,10 @@ public class PaymentServiceTests
         string webhookStatus,
         PaymentStatusEnum expectedStatus)
     {
+        var orderId = Guid.NewGuid();
         var order = new Order
         {
-            Id = 1,
+            Id = orderId,
             Number = 100,
             Status = OrderStatusEnum.RECEIVED,
             Items = new List<OrderItem>()
@@ -145,11 +149,11 @@ public class PaymentServiceTests
 
         var webhookDto = new PaymentWebhookDto(
             Status: webhookStatus,
-            OrderId: "1",
+            OrderId: orderId.ToString(),
             PaymentId: "pay_123"
         );
 
-        _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(1))
+        _repositoryMock.Setup(r => r.GetByIdWithItemsAsync(orderId))
             .ReturnsAsync(order);
 
         _repositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Order>()))

@@ -21,9 +21,9 @@ namespace Orders.Infrastructure.Migrations
 
             modelBuilder.Entity("Orders.Domain.Entities.Order", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("char(36)")
                         .HasColumnName("id");
 
                     b.Property<DateTime>("CreatedAt")
@@ -96,8 +96,8 @@ namespace Orders.Infrastructure.Migrations
                         .HasColumnType("datetime(6)")
                         .HasColumnName("created_at");
 
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int")
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("char(36)")
                         .HasColumnName("order_id");
 
                     b.Property<int>("ProductId")

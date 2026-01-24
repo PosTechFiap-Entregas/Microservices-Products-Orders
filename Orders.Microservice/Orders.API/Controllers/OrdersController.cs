@@ -31,10 +31,10 @@ namespace Orders.API.Controllers
             return Ok(orders);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:guid}")]
         [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<OrderDto>> GetById(int id)
+        public async Task<ActionResult<OrderDto>> GetById(Guid id)
         {
             var order = await _orderService.GetByIdAsync(id);
 
@@ -81,11 +81,11 @@ namespace Orders.API.Controllers
             }
         }
 
-        [HttpPatch("{id}/status")]
+        [HttpPatch("{id:guid}/status")]
         [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<OrderDto>> UpdateStatus(int id, [FromBody] UpdateOrderStatusDto dto)
+        public async Task<ActionResult<OrderDto>> UpdateStatus(Guid id, [FromBody] UpdateOrderStatusDto dto)
         {
             try
             {
@@ -107,11 +107,11 @@ namespace Orders.API.Controllers
             }
         }
 
-        [HttpPatch("{id}/payment")]
+        [HttpPatch("{id:guid}/payment")]
         [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<OrderDto>> SetPaymentId(int id, [FromBody] SetPaymentIdDto dto)
+        public async Task<ActionResult<OrderDto>> SetPaymentId(Guid id, [FromBody] SetPaymentIdDto dto)
         {
             try
             {
@@ -129,10 +129,10 @@ namespace Orders.API.Controllers
             }
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:guid}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _orderService.DeleteAsync(id);
 

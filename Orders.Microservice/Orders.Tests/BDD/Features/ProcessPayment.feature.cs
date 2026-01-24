@@ -208,7 +208,8 @@ this.ScenarioInitialize(scenarioInfo);
             {
                 this.ScenarioStart();
 #line 27
-    testRunner.When("I receive a webhook for non-existent order \"999\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.When("I receive a webhook for non-existent order \"00000000-0000-0000-0000-000000000999\"" +
+                        "", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 28
     testRunner.Then("the webhook processing should fail", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");

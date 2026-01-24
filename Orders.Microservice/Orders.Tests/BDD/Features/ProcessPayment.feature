@@ -24,7 +24,7 @@ Scenario: Handle invalid order id
     And the error message should contain "OrderId invalido"
 
 Scenario: Handle non-existent order
-    When I receive a webhook for non-existent order "999"
+    When I receive a webhook for non-existent order "00000000-0000-0000-0000-000000000999"
     Then the webhook processing should fail
     And the error message should contain "nao encontrado"
 
