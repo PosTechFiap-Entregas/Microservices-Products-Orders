@@ -9,7 +9,7 @@ namespace Orders.Application.DTOs
 {
     public record OrderDto(
         Guid Id,
-        int? CustomerId,
+        Guid? CustomerId,
         OrderStatusEnum Status,
         string? Observation,
         int Number,

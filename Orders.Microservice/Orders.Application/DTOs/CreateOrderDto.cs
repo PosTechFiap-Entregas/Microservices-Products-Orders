@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Orders.Application.DTOs
 {
     public record CreateOrderDto(
-        int? CustomerId,
+        Guid? CustomerId,
         string? Observation,
         List<CreateOrderItemDto> Items
     );

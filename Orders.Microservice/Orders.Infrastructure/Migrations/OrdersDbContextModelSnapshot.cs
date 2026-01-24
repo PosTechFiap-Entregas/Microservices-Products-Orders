@@ -30,8 +30,8 @@ namespace Orders.Infrastructure.Migrations
                         .HasColumnType("datetime(6)")
                         .HasColumnName("created_at");
 
-                    b.Property<int?>("CustomerId")
-                        .HasColumnType("int")
+                    b.Property<Guid?>("CustomerId")
+                        .HasColumnType("char(36)")
                         .HasColumnName("customer_id");
 
                     b.Property<int>("Number")

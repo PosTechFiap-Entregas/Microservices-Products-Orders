@@ -577,7 +577,7 @@ namespace Orders.Tests.Infrastructure.Repositories
             var order = new Order
             {
                 Id = id ?? Guid.NewGuid(),
-                CustomerId = 1,
+                CustomerId = Guid.NewGuid(),
                 Number = number,
                 Status = status,
                 Observation = "Pedido teste",

@@ -186,7 +186,7 @@ namespace Orders.Tests.Application.Services.Service
             var paymentResponse = new PaymentResponse("pay_123", createdOrderId.ToString(), 51.00m, "PENDING", "qrcode_data", DateTime.UtcNow);
 
             var createDto = new CreateOrderDto(
-                CustomerId: 1,
+                CustomerId: Guid.NewGuid(),
                 Observation: "Pedido teste",
                 Items: new List<CreateOrderItemDto>
                 {
@@ -241,7 +241,7 @@ namespace Orders.Tests.Application.Services.Service
             var paymentResponse = new PaymentResponse("pay_123", createdOrderId.ToString(), 70.00m, "PENDING", "qrcode_data", DateTime.UtcNow);
 
             var createDto = new CreateOrderDto(
-                CustomerId: 1,
+                CustomerId: Guid.NewGuid(),
                 Observation: null,
                 Items: new List<CreateOrderItemDto>
                 {
@@ -293,7 +293,7 @@ namespace Orders.Tests.Application.Services.Service
         [Fact]
         public async Task CreateAsync_WithNullItems_ThrowsArgumentException()
         {
-            var createDto = new CreateOrderDto(1, "Teste", null!);
+            var createDto = new CreateOrderDto(Guid.NewGuid(), "Teste", null!);
 
             Func<Task> act = async () => await _service.CreateAsync(createDto);
 
@@ -307,7 +307,7 @@ namespace Orders.Tests.Application.Services.Service
         [Fact]
         public async Task CreateAsync_WithEmptyItems_ThrowsArgumentException()
         {
-            var createDto = new CreateOrderDto(1, "Teste", new List<CreateOrderItemDto>());
+            var createDto = new CreateOrderDto(Guid.NewGuid(), "Teste", new List<CreateOrderItemDto>());
 
             Func<Task> act = async () => await _service.CreateAsync(createDto);
 
@@ -321,7 +321,7 @@ namespace Orders.Tests.Application.Services.Service
         public async Task CreateAsync_WithNonExistentProduct_ThrowsKeyNotFoundException()
         {
             var createDto = new CreateOrderDto(
-                CustomerId: 1,
+                CustomerId: Guid.NewGuid(),
                 Observation: "Teste",
                 Items: new List<CreateOrderItemDto>
                 {
@@ -348,7 +348,7 @@ namespace Orders.Tests.Application.Services.Service
         {
             var inactiveProduct = new ProductResponse(1, "Produto Inativo", 10.00m, "Categoria", null, false, null);
             var createDto = new CreateOrderDto(
-                CustomerId: 1,
+                CustomerId: Guid.NewGuid(),
                 Observation: "Teste",
                 Items: new List<CreateOrderItemDto>
                 {
@@ -416,7 +416,7 @@ namespace Orders.Tests.Application.Services.Service
         {
             var product = new ProductResponse(1, "Produto Teste", 25.50m, "Categoria", "Descrição", true, null);
             var createDto = new CreateOrderDto(
-                CustomerId: 1,
+                CustomerId: Guid.NewGuid(),
                 Observation: "Pedido teste",
                 Items: new List<CreateOrderItemDto>
                 {
@@ -453,7 +453,7 @@ namespace Orders.Tests.Application.Services.Service
             var product = new ProductResponse(1, "Produto", 10.00m, "Categoria", null, true, null);
 
             var createDto = new CreateOrderDto(
-                CustomerId: 1,
+                CustomerId: Guid.NewGuid(),
                 Observation: "Obs",
                 Items: new List<CreateOrderItemDto> { new(1, 2) }
             );
@@ -487,7 +487,7 @@ namespace Orders.Tests.Application.Services.Service
             var paymentResponse = new PaymentResponse("pay_abc", createdOrderId.ToString(), 10.00m, "PENDING", "qrcode", DateTime.UtcNow);
 
             var createDto = new CreateOrderDto(
-                CustomerId: 1,
+                CustomerId: Guid.NewGuid(),
                 Observation: null,
                 Items: new List<CreateOrderItemDto> { new(1, 2) }
             );
@@ -519,7 +519,7 @@ namespace Orders.Tests.Application.Services.Service
             var product = new ProductResponse(1, "Produto", 7.50m, "Categoria", null, true, null);
 
             var createDto = new CreateOrderDto(
-                CustomerId: 1,
+                CustomerId: Guid.NewGuid(),
                 Observation: "Obs",
                 Items: new List<CreateOrderItemDto> { new(1, 1) }
             );
@@ -711,7 +711,7 @@ namespace Orders.Tests.Application.Services.Service
             var order = new Order
             {
                 Id = orderId,
-                CustomerId = 1,
+                CustomerId = Guid.NewGuid(),
                 Number = number,
                 Status = status,
                 Observation = "Pedido teste",

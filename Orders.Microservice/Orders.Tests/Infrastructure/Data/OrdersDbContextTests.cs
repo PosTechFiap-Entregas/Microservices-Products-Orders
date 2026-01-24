@@ -344,7 +344,7 @@ namespace Orders.Tests.Infrastructure.Data
             using var context = CreateContext();
             var order = new Order
             {
-                CustomerId = 1,
+                CustomerId = Guid.NewGuid(),
                 Number = 100,
                 Status = OrderStatusEnum.RECEIVED,
                 PaymentStatus = PaymentStatusEnum.PENDING,
@@ -366,7 +366,7 @@ namespace Orders.Tests.Infrastructure.Data
             using var context = CreateContext();
             var order = new Order
             {
-                CustomerId = 1,
+                CustomerId = Guid.NewGuid(),
                 Number = 101,
                 Status = OrderStatusEnum.RECEIVED,
                 PaymentStatus = PaymentStatusEnum.PENDING,
@@ -402,7 +402,7 @@ namespace Orders.Tests.Infrastructure.Data
             using var context = CreateContext();
             var order = new Order
             {
-                CustomerId = 1,
+                CustomerId = Guid.NewGuid(),
                 Number = 102,
                 Status = OrderStatusEnum.RECEIVED,
                 PaymentStatus = PaymentStatusEnum.PENDING,
@@ -426,7 +426,7 @@ namespace Orders.Tests.Infrastructure.Data
             using var context = CreateContext();
             var order = new Order
             {
-                CustomerId = 1,
+                CustomerId = Guid.NewGuid(),
                 Number = 103,
                 Status = OrderStatusEnum.RECEIVED,
                 PaymentStatus = PaymentStatusEnum.PENDING,
@@ -449,7 +449,7 @@ namespace Orders.Tests.Infrastructure.Data
             using var context = CreateContext();
             var order = new Order
             {
-                CustomerId = 1,
+                CustomerId = Guid.NewGuid(),
                 Number = 104,
                 Status = OrderStatusEnum.RECEIVED,
                 PaymentStatus = PaymentStatusEnum.PENDING,
@@ -488,7 +488,7 @@ namespace Orders.Tests.Infrastructure.Data
             using var context = CreateContext();
             var order1 = new Order
             {
-                CustomerId = 1,
+                CustomerId = Guid.NewGuid(),
                 Number = 105,
                 Status = OrderStatusEnum.RECEIVED,
                 PaymentStatus = PaymentStatusEnum.PENDING,
@@ -497,7 +497,7 @@ namespace Orders.Tests.Infrastructure.Data
             };
             var order2 = new Order
             {
-                CustomerId = 1,
+                CustomerId = Guid.NewGuid(),
                 Number = 106,
                 Status = OrderStatusEnum.IN_PREPARATION,
                 PaymentStatus = PaymentStatusEnum.PENDING,
@@ -518,7 +518,7 @@ namespace Orders.Tests.Infrastructure.Data
             using var context = CreateContext();
             var order1 = new Order
             {
-                CustomerId = 1,
+                CustomerId = Guid.NewGuid(),
                 Number = 107,
                 Status = OrderStatusEnum.RECEIVED,
                 PaymentStatus = PaymentStatusEnum.PENDING,
@@ -527,7 +527,7 @@ namespace Orders.Tests.Infrastructure.Data
             };
             var order2 = new Order
             {
-                CustomerId = 1,
+                CustomerId = Guid.NewGuid(),
                 Number = 108,
                 Status = OrderStatusEnum.FINALIZED,
                 PaymentStatus = PaymentStatusEnum.PAID,
@@ -551,7 +551,7 @@ namespace Orders.Tests.Infrastructure.Data
             using var context = CreateContext();
             var order = new Order
             {
-                CustomerId = 1,
+                CustomerId = Guid.NewGuid() ,
                 Number = 109,
                 Status = OrderStatusEnum.RECEIVED,
                 PaymentStatus = PaymentStatusEnum.PENDING,
@@ -598,7 +598,7 @@ namespace Orders.Tests.Infrastructure.Data
             using var context = CreateContext();
             var order = new Order
             {
-                CustomerId = 1,
+                CustomerId = Guid.NewGuid(),
                 Number = 110,
                 Status = OrderStatusEnum.RECEIVED,
                 PaymentStatus = PaymentStatusEnum.PENDING,

@@ -218,7 +218,7 @@ namespace Orders.Tests.API.Controllers
         [Fact]
         public async Task Create_WithValidData_ReturnsCreatedAtAction()
         {
-            var createDto = new CreateOrderDto(1, "Pedido teste", new List<CreateOrderItemDto>
+            var createDto = new CreateOrderDto(Guid.NewGuid(), "Pedido teste", new List<CreateOrderItemDto>
             {
                 new CreateOrderItemDto(1, 2)
             });
@@ -244,7 +244,7 @@ namespace Orders.Tests.API.Controllers
         [Fact]
         public async Task Create_WithNonExistentProduct_ReturnsBadRequest()
         {
-            var createDto = new CreateOrderDto(1, "Pedido teste", new List<CreateOrderItemDto>
+            var createDto = new CreateOrderDto(Guid.NewGuid(), "Pedido teste", new List<CreateOrderItemDto>
             {
                 new CreateOrderItemDto(999, 1)
             });
@@ -263,7 +263,7 @@ namespace Orders.Tests.API.Controllers
         [Fact]
         public async Task Create_WhenServiceThrowsException_ReturnsBadRequest()
         {
-            var createDto = new CreateOrderDto(1, "Pedido", new List<CreateOrderItemDto>());
+            var createDto = new CreateOrderDto(Guid.NewGuid(), "Pedido", new List<CreateOrderItemDto>());
 
             _serviceMock.Setup(s => s.CreateAsync(createDto))
                 .ThrowsAsync(new ArgumentException("O pedido deve conter ao menos um item"));
@@ -279,7 +279,7 @@ namespace Orders.Tests.API.Controllers
         [Fact]
         public async Task Create_WhenServiceThrowsException_LogsError()
         {
-            var createDto = new CreateOrderDto(1, "Pedido", new List<CreateOrderItemDto>
+            var createDto = new CreateOrderDto(Guid.NewGuid(), "Pedido", new List<CreateOrderItemDto>
             {
                 new CreateOrderItemDto(1, 1)
             });
@@ -303,8 +303,8 @@ namespace Orders.Tests.API.Controllers
         [Fact]
         public async Task Create_WithMultipleDifferentOrders_ReturnsCreatedForEach()
         {
-            var createDto1 = new CreateOrderDto(1, "Pedido 1", new List<CreateOrderItemDto> { new(1, 1) });
-            var createDto2 = new CreateOrderDto(2, "Pedido 2", new List<CreateOrderItemDto> { new(2, 2) });
+            var createDto1 = new CreateOrderDto(Guid.NewGuid(), "Pedido 1", new List<CreateOrderItemDto> { new(1, 1) });
+            var createDto2 = new CreateOrderDto(Guid.NewGuid(), "Pedido 2", new List<CreateOrderItemDto> { new(2, 2) });
 
             var createdOrder1 = CreateSampleOrderDto(Guid.NewGuid(), 100);
             var createdOrder2 = CreateSampleOrderDto(Guid.NewGuid(), 101);
@@ -616,7 +616,7 @@ namespace Orders.Tests.API.Controllers
             var orderId = id ?? Guid.NewGuid();
             return new OrderDto(
                 Id: orderId,
-                CustomerId: 1,
+                CustomerId: Guid.NewGuid(),
                 Status: status,
                 Observation: "Pedido teste",
                 Number: number,

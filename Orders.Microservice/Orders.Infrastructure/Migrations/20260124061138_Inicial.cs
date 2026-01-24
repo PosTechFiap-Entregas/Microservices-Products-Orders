@@ -20,7 +20,7 @@ namespace Orders.Infrastructure.Migrations
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    customer_id = table.Column<int>(type: "int", nullable: true),
+                    customer_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     status = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     observation = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)

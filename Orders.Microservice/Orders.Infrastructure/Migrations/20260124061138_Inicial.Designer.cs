@@ -11,7 +11,7 @@ using Orders.Infrastructure.Data;
 namespace Orders.Infrastructure.Migrations
 {
     [DbContext(typeof(OrdersDbContext))]
-    [Migration("20260124053138_Inicial")]
+    [Migration("20260124061138_Inicial")]
     partial class Inicial
     {
         /// <inheritdoc />
@@ -33,8 +33,8 @@ namespace Orders.Infrastructure.Migrations
                         .HasColumnType("datetime(6)")
                         .HasColumnName("created_at");
 
-                    b.Property<int?>("CustomerId")
-                        .HasColumnType("int")
+                    b.Property<Guid?>("CustomerId")
+                        .HasColumnType("char(36)")
                         .HasColumnName("customer_id");
 
                     b.Property<int>("Number")
